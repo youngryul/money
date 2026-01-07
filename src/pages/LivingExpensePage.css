@@ -1,0 +1,63 @@
+.living-expense-page {
+  max-width: 1200px;
+}
+
+.expense-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.expense-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  background-color: var(--bg-secondary);
+  border-radius: var(--radius-md);
+}
+
+.expense-info {
+  flex: 1;
+}
+
+.expense-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.expense-category {
+  font-weight: 600;
+  color: var(--text-primary);
+  padding: 0.25rem 0.75rem;
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+}
+
+.expense-date {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.expense-amount {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--danger-color);
+  margin-bottom: 0.25rem;
+}
+
+.expense-memo {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.expense-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+

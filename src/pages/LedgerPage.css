@@ -1,0 +1,87 @@
+.ledger-page {
+  max-width: 1200px;
+}
+
+.ledger-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.ledger-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  background-color: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  border-left: 4px solid var(--border-color);
+}
+
+.ledger-item.income {
+  border-left-color: var(--success-color);
+}
+
+.ledger-item.expense {
+  border-left-color: var(--danger-color);
+}
+
+.ledger-info {
+  flex: 1;
+}
+
+.ledger-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.ledger-category {
+  font-weight: 600;
+  color: var(--text-primary);
+  padding: 0.25rem 0.75rem;
+  background-color: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+}
+
+.ledger-date {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.ledger-user {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  padding: 0.25rem 0.75rem;
+  background-color: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+}
+
+.ledger-amount {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.ledger-amount.income {
+  color: var(--success-color);
+}
+
+.ledger-amount.expense {
+  color: var(--danger-color);
+}
+
+.ledger-memo {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.ledger-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+

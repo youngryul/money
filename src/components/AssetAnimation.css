@@ -1,0 +1,35 @@
+.asset-animation {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.asset-animation-value {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.asset-animation-change {
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-md);
+}
+
+.asset-animation-change.positive {
+  color: var(--success-color);
+  background-color: rgba(16, 185, 129, 0.1);
+}
+
+.asset-animation-change.negative {
+  color: var(--danger-color);
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.asset-animation-percent {
+  margin-left: 0.5rem;
+  font-size: 0.875rem;
+}
+
