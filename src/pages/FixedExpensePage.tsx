@@ -9,7 +9,7 @@ import './FixedExpensePage.css'
 
 const FixedExpensePage = () => {
   const { user, partner } = useAuthStore()
-  const { fixedExpenses, addFixedExpense, deleteFixedExpense } = useDataStore()
+  const { fixedExpenses, addFixedExpense, deleteFixedExpense, isLoading, error } = useDataStore()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [formData, setFormData] = useState({
     userId: user?.id || '',
@@ -19,27 +19,41 @@ const FixedExpensePage = () => {
     memo: '',
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!formData.userId || !formData.name || !formData.amount || !formData.dayOfMonth) {
       alert('모든 필수 항목을 입력해주세요.')
       return
     }
-    addFixedExpense({
-      userId: formData.userId,
-      name: formData.name,
-      amount: Number(formData.amount),
-      dayOfMonth: Number(formData.dayOfMonth),
-      memo: formData.memo,
-    })
-    setFormData({
-      userId: user?.id || '',
-      name: '',
-      amount: '',
-      dayOfMonth: '',
-      memo: '',
-    })
-    setIsModalOpen(false)
+    try {
+      await addFixedExpense({
+        userId: formData.userId,
+        name: formData.name,
+        amount: Number(formData.amount),
+        dayOfMonth: Number(formData.dayOfMonth),
+        memo: formData.memo,
+      })
+      setFormData({
+        userId: user?.id || '',
+        name: '',
+        amount: '',
+        dayOfMonth: '',
+        memo: '',
+      })
+      setIsModalOpen(false)
+    } catch (error) {
+      alert('고정비 추가 중 오류가 발생했습니다.')
+    }
+  }
+
+  const handleDelete = async (id: string) => {
+    if (confirm('삭제하시겠습니까?')) {
+      try {
+        await deleteFixedExpense(id)
+      } catch (error) {
+        alert('고정비 삭제 중 오류가 발생했습니다.')
+      }
+    }
   }
 
   const getUserName = (userId: string) => {
@@ -52,12 +66,22 @@ const FixedExpensePage = () => {
     <div className="fixed-expense-page">
       <div className="page-header">
         <h1 className="page-title">고정비 기록</h1>
-        <Button onClick={() => setIsModalOpen(true)}>고정비 추가</Button>
+        <Button onClick={() => setIsModalOpen(true)} disabled={isLoading}>
+          고정비 추가
+        </Button>
       </div>
+
+      {error && (
+        <div className="error-message" style={{ color: 'red', marginBottom: '1rem' }}>
+          {error}
+        </div>
+      )}
 
       <Card>
         <div className="expense-list">
-          {fixedExpenses.length === 0 ? (
+          {isLoading && fixedExpenses.length === 0 ? (
+            <div className="empty-state">데이터를 불러오는 중...</div>
+          ) : fixedExpenses.length === 0 ? (
             <div className="empty-state">기록된 고정비가 없습니다.</div>
           ) : (
             fixedExpenses.map((expense) => (
@@ -73,15 +97,7 @@ const FixedExpensePage = () => {
                   </div>
                   {expense.memo && <div className="expense-memo">{expense.memo}</div>}
                 </div>
-                <Button
-                  variant="danger"
-                  size="sm"
-                  onClick={() => {
-                    if (confirm('삭제하시겠습니까?')) {
-                      deleteFixedExpense(expense.id)
-                    }
-                  }}
-                >
+                <Button variant="danger" size="sm" onClick={() => handleDelete(expense.id)} disabled={isLoading}>
                   삭제
                 </Button>
               </div>
@@ -139,10 +155,12 @@ const FixedExpensePage = () => {
             placeholder="메모를 입력하세요 (선택)"
           />
           <div className="form-actions">
-            <Button type="button" variant="secondary" onClick={() => setIsModalOpen(false)}>
+            <Button type="button" variant="secondary" onClick={() => setIsModalOpen(false)} disabled={isLoading}>
               취소
             </Button>
-            <Button type="submit">추가</Button>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? '처리 중...' : '추가'}
+            </Button>
           </div>
         </form>
       </Modal>

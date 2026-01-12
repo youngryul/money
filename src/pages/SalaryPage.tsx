@@ -10,7 +10,7 @@ import './SalaryPage.css'
 
 const SalaryPage = () => {
   const { user, partner } = useAuthStore()
-  const { salaries, addSalary, deleteSalary } = useDataStore()
+  const { salaries, addSalary, deleteSalary, isLoading, error } = useDataStore()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [formData, setFormData] = useState({
     userId: user?.id || '',
@@ -19,25 +19,39 @@ const SalaryPage = () => {
     memo: '',
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!formData.userId || !formData.amount) {
       alert('모든 필수 항목을 입력해주세요.')
       return
     }
-    addSalary({
-      userId: formData.userId,
-      amount: Number(formData.amount),
-      date: formData.date,
-      memo: formData.memo,
-    })
-    setFormData({
-      userId: user?.id || '',
-      amount: '',
-      date: format(new Date(), 'yyyy-MM-dd'),
-      memo: '',
-    })
-    setIsModalOpen(false)
+    try {
+      await addSalary({
+        userId: formData.userId,
+        amount: Number(formData.amount),
+        date: formData.date,
+        memo: formData.memo,
+      })
+      setFormData({
+        userId: user?.id || '',
+        amount: '',
+        date: format(new Date(), 'yyyy-MM-dd'),
+        memo: '',
+      })
+      setIsModalOpen(false)
+    } catch (error) {
+      alert('월급 추가 중 오류가 발생했습니다.')
+    }
+  }
+
+  const handleDelete = async (id: string) => {
+    if (confirm('삭제하시겠습니까?')) {
+      try {
+        await deleteSalary(id)
+      } catch (error) {
+        alert('월급 삭제 중 오류가 발생했습니다.')
+      }
+    }
   }
 
   const getUserName = (userId: string) => {
@@ -50,12 +64,22 @@ const SalaryPage = () => {
     <div className="salary-page">
       <div className="page-header">
         <h1 className="page-title">월급 기록</h1>
-        <Button onClick={() => setIsModalOpen(true)}>월급 추가</Button>
+        <Button onClick={() => setIsModalOpen(true)} disabled={isLoading}>
+          월급 추가
+        </Button>
       </div>
+
+      {error && (
+        <div className="error-message" style={{ color: 'red', marginBottom: '1rem' }}>
+          {error}
+        </div>
+      )}
 
       <Card>
         <div className="salary-list">
-          {salaries.length === 0 ? (
+          {isLoading && salaries.length === 0 ? (
+            <div className="empty-state">데이터를 불러오는 중...</div>
+          ) : salaries.length === 0 ? (
             <div className="empty-state">기록된 월급이 없습니다.</div>
           ) : (
             salaries
@@ -70,15 +94,7 @@ const SalaryPage = () => {
                     <div className="salary-amount">{salary.amount.toLocaleString()}원</div>
                     {salary.memo && <div className="salary-memo">{salary.memo}</div>}
                   </div>
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    onClick={() => {
-                      if (confirm('삭제하시겠습니까?')) {
-                        deleteSalary(salary.id)
-                      }
-                    }}
-                  >
+                  <Button variant="danger" size="sm" onClick={() => handleDelete(salary.id)} disabled={isLoading}>
                     삭제
                   </Button>
                 </div>
@@ -126,10 +142,12 @@ const SalaryPage = () => {
             placeholder="메모를 입력하세요 (선택)"
           />
           <div className="form-actions">
-            <Button type="button" variant="secondary" onClick={() => setIsModalOpen(false)}>
+            <Button type="button" variant="secondary" onClick={() => setIsModalOpen(false)} disabled={isLoading}>
               취소
             </Button>
-            <Button type="submit">추가</Button>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? '처리 중...' : '추가'}
+            </Button>
           </div>
         </form>
       </Modal>

@@ -1,5 +1,7 @@
+import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useAuthStore } from './stores/authStore'
+import { useDataStore } from './stores/dataStore'
 import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
 import SalaryPage from './pages/SalaryPage'
@@ -14,6 +16,15 @@ import Layout from './components/Layout'
 
 function App() {
   const { isAuthenticated } = useAuthStore()
+  const { loadAllData } = useDataStore()
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadAllData().catch((error) => {
+        console.error('데이터 로딩 실패:', error)
+      })
+    }
+  }, [isAuthenticated, loadAllData])
 
   return (
     <BrowserRouter>
