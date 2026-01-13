@@ -155,8 +155,8 @@ const SavingsPage = () => {
             onChange={(value) => setFormData({ ...formData, amount: value })}
             placeholder="금액을 입력하세요"
             required
-            min="0"
-            step="1000"
+            min={0}
+            step={1000}
           />
           <Input
             label="날짜"

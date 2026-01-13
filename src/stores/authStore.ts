@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { User, UserType } from '../types'
+import { User } from '../types'
 import { STORAGE_KEYS, USER_TYPE, DEFAULT_VALUES } from '../constants'
 import { getUsers, createUser, updateUser } from '../services/userService'
 import { supabase } from '../lib/supabase'

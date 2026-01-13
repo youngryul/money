@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { format } from 'date-fns'
 import { useAuthStore } from '../stores/authStore'
 import { useDataStore } from '../stores/dataStore'
-import { TRANSACTION_TYPE, CATEGORY } from '../constants'
+import { TRANSACTION_TYPE } from '../constants'
 import Card from '../components/Card'
 import Button from '../components/Button'
 import Input from '../components/Input'
@@ -13,7 +13,16 @@ const LedgerPage = () => {
   const { user, partner } = useAuthStore()
   const { ledgerTransactions, addLedgerTransaction, deleteLedgerTransaction } = useDataStore()
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [formData, setFormData] = useState({
+  type FormDataType = {
+    type: typeof TRANSACTION_TYPE[keyof typeof TRANSACTION_TYPE]
+    amount: string
+    date: string
+    category: string
+    memo: string
+    userId: string
+  }
+
+  const [formData, setFormData] = useState<FormDataType>({
     type: TRANSACTION_TYPE.EXPENSE,
     amount: '',
     date: format(new Date(), 'yyyy-MM-dd'),
@@ -32,7 +41,7 @@ const LedgerPage = () => {
       return
     }
     addLedgerTransaction({
-      type: formData.type as typeof TRANSACTION_TYPE[keyof typeof TRANSACTION_TYPE],
+      type: formData.type,
       amount: Number(formData.amount),
       date: formData.date,
       category: formData.category,
@@ -117,7 +126,11 @@ const LedgerPage = () => {
               className="form-select"
               value={formData.type}
               onChange={(e) => {
-                setFormData({ ...formData, type: e.target.value, category: '' })
+                setFormData({ 
+                  ...formData, 
+                  type: e.target.value as typeof TRANSACTION_TYPE[keyof typeof TRANSACTION_TYPE], 
+                  category: '' 
+                })
               }}
               required
             >
@@ -132,8 +145,8 @@ const LedgerPage = () => {
             onChange={(value) => setFormData({ ...formData, amount: value })}
             placeholder="금액을 입력하세요"
             required
-            min="0"
-            step="1000"
+            min={0}
+            step={1000}
           />
           <Input
             label="날짜"

@@ -7,9 +7,11 @@ interface InputProps {
   onChange: (value: string) => void
   placeholder?: string
   required?: boolean
-  min?: number
-  max?: number
-  step?: number
+  min?: number | string
+  max?: number | string
+  step?: number | string
+  minLength?: number
+  maxLength?: number
   disabled?: boolean
   error?: string
 }
@@ -27,6 +29,8 @@ const Input = ({
   min,
   max,
   step,
+  minLength,
+  maxLength,
   disabled = false,
   error,
 }: InputProps) => {
@@ -48,6 +52,8 @@ const Input = ({
         min={min}
         max={max}
         step={step}
+        minLength={minLength}
+        maxLength={maxLength}
         disabled={disabled}
       />
       {error && <span className="input-error-message">{error}</span>}

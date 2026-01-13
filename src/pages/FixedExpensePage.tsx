@@ -135,8 +135,8 @@ const FixedExpensePage = () => {
             onChange={(value) => setFormData({ ...formData, amount: value })}
             placeholder="금액을 입력하세요"
             required
-            min="0"
-            step="1000"
+            min={0}
+            step={1000}
           />
           <Input
             label="매월 지출일"
@@ -145,7 +145,7 @@ const FixedExpensePage = () => {
             onChange={(value) => setFormData({ ...formData, dayOfMonth: value })}
             placeholder="1-31 사이의 숫자"
             required
-            min="1"
+            min={1}
             max="31"
           />
           <Input

@@ -127,8 +127,8 @@ const SalaryPage = () => {
             onChange={(value) => setFormData({ ...formData, amount: value })}
             placeholder="월급액을 입력하세요"
             required
-            min="0"
-            step="1000"
+            min={0}
+            step={1000}
           />
           <Input
             label="날짜"

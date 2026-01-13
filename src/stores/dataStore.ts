@@ -102,7 +102,7 @@ interface DataState {
   clearError: () => void
 }
 
-export const useDataStore = create<DataState>((set, get) => ({
+export const useDataStore = create<DataState>((set) => ({
   // 초기 상태
   isLoading: false,
   error: null,
