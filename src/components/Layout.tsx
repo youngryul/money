@@ -5,7 +5,7 @@ import './Layout.css'
 const Layout = () => {
   const navigate = useNavigate()
   const location = useLocation()
-  const { user, partner, logout } = useAuthStore()
+  const { user, partner, signOut } = useAuthStore()
 
   const menuItems = [
     { path: '/', label: '대시보드', icon: '📊' },
@@ -19,10 +19,15 @@ const Layout = () => {
     { path: '/goal', label: '목표', icon: '🎯' },
   ]
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     if (confirm('로그아웃 하시겠습니까?')) {
-      logout()
-      navigate('/login')
+      try {
+        await signOut()
+        navigate('/login')
+      } catch (error) {
+        console.error('로그아웃 오류:', error)
+        alert('로그아웃 중 오류가 발생했습니다.')
+      }
     }
   }
 

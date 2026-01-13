@@ -16,9 +16,11 @@ export async function getUsers(): Promise<User[]> {
   return (
     data?.map((user) => ({
       id: user.id,
+      authUserId: user.auth_user_id,
       name: user.name,
       type: user.type,
       character: user.character,
+      partnerId: user.partner_id,
     })) || []
   )
 }
@@ -29,13 +31,23 @@ export async function getUsers(): Promise<User[]> {
  * @returns 생성된 사용자 정보
  */
 export async function createUser(user: Omit<User, 'id'>): Promise<User> {
+  const insertData: Record<string, unknown> = {
+    name: user.name,
+    type: user.type,
+    character: user.character && user.character.trim() !== '' ? user.character.trim() : null,
+  }
+  
+  if (user.authUserId) {
+    insertData.auth_user_id = user.authUserId
+  }
+  
+  if (user.partnerId) {
+    insertData.partner_id = user.partnerId
+  }
+
   const { data, error } = await supabase
     .from('users')
-    .insert({
-      name: user.name,
-      type: user.type,
-      character: user.character,
-    })
+    .insert(insertData)
     .select()
     .single()
 
@@ -46,9 +58,11 @@ export async function createUser(user: Omit<User, 'id'>): Promise<User> {
 
   return {
     id: data.id,
+    authUserId: data.auth_user_id,
     name: data.name,
     type: data.type,
     character: data.character,
+    partnerId: data.partner_id,
   }
 }
 
@@ -59,13 +73,17 @@ export async function createUser(user: Omit<User, 'id'>): Promise<User> {
  * @returns 수정된 사용자 정보
  */
 export async function updateUser(id: string, updates: Partial<Omit<User, 'id'>>): Promise<User> {
+  const updateData: Record<string, unknown> = {}
+  if (updates.name !== undefined) updateData.name = updates.name
+  if (updates.type !== undefined) updateData.type = updates.type
+  if (updates.character !== undefined) {
+    updateData.character = updates.character && updates.character.trim() !== '' ? updates.character.trim() : null
+  }
+  if (updates.partnerId !== undefined) updateData.partner_id = updates.partnerId
+
   const { data, error } = await supabase
     .from('users')
-    .update({
-      name: updates.name,
-      type: updates.type,
-      character: updates.character,
-    })
+    .update(updateData)
     .eq('id', id)
     .select()
     .single()
@@ -77,9 +95,11 @@ export async function updateUser(id: string, updates: Partial<Omit<User, 'id'>>)
 
   return {
     id: data.id,
+    authUserId: data.auth_user_id,
     name: data.name,
     type: data.type,
     character: data.character,
+    partnerId: data.partner_id,
   }
 }
 

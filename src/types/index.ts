@@ -5,9 +5,25 @@ import { UserType, TransactionType, Category } from '../constants'
  */
 export interface User {
   id: string
+  authUserId?: string
   name: string
-  type: UserType
+  type: UserType | null
   character?: string
+  partnerId?: string
+}
+
+/**
+ * 초대장 정보
+ */
+export interface Invitation {
+  id: string
+  inviterId: string
+  inviteeEmail: string
+  code: string
+  status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'EXPIRED'
+  expiresAt: string
+  createdAt: string
+  updatedAt: string
 }
 
 /**

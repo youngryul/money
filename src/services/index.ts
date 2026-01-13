@@ -2,6 +2,7 @@
  * 모든 서비스 함수를 한 곳에서 export
  */
 export * from './userService'
+export * from './invitationService'
 export * from './salaryService'
 export * from './fixedExpenseService'
 export * from './livingExpenseService'

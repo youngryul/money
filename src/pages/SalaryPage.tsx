@@ -40,7 +40,9 @@ const SalaryPage = () => {
       })
       setIsModalOpen(false)
     } catch (error) {
-      alert('월급 추가 중 오류가 발생했습니다.')
+      const errorMessage = error instanceof Error ? error.message : '월급 추가 중 오류가 발생했습니다.'
+      console.error('월급 추가 오류:', error)
+      alert(errorMessage)
     }
   }
 
