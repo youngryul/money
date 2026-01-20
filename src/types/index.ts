@@ -9,7 +9,7 @@ export interface User {
   name: string
   type: UserType | null
   character?: string
-  partnerId?: string
+  partnerId?: string | null
 }
 
 /**

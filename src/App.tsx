@@ -99,7 +99,7 @@ const AcceptInvitationRoute = () => {
 }
 
 function AppRoutes() {
-  const { isAuthenticated, user, partner } = useAuthStore()
+  const { isAuthenticated, user } = useAuthStore()
   const { loadAllData } = useDataStore()
 
   // 데이터 로딩 (한 번만 실행되도록 useMemo로 감싸기)
