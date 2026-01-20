@@ -2,9 +2,9 @@ import { supabase } from '../lib/supabase'
 import { Salary } from '../types'
 
 /**
- * 월급 정보 조회
+ * 수입 정보 조회
  * @param userId - 사용자 ID (선택사항)
- * @returns 월급 목록
+ * @returns 수입 목록
  */
 export async function getSalaries(userId?: string): Promise<Salary[]> {
   let query = supabase.from('salaries').select('*').order('date', { ascending: false })
@@ -16,7 +16,7 @@ export async function getSalaries(userId?: string): Promise<Salary[]> {
   const { data, error } = await query
 
   if (error) {
-    console.error('월급 조회 오류:', error)
+    console.error('수입 조회 오류:', error)
     throw error
   }
 
@@ -32,9 +32,9 @@ export async function getSalaries(userId?: string): Promise<Salary[]> {
 }
 
 /**
- * 월급 정보 생성
- * @param salary - 생성할 월급 정보
- * @returns 생성된 월급 정보
+ * 수입 정보 생성
+ * @param salary - 생성할 수입 정보
+ * @returns 생성된 수입 정보
  */
 export async function createSalary(salary: Omit<Salary, 'id'>): Promise<Salary> {
   // 데이터 검증
@@ -42,7 +42,7 @@ export async function createSalary(salary: Omit<Salary, 'id'>): Promise<Salary> 
     throw new Error('사용자 ID가 필요합니다.')
   }
   if (!salary.amount || salary.amount <= 0) {
-    throw new Error('월급액은 0보다 큰 값이어야 합니다.')
+    throw new Error('수입액은 0보다 큰 값이어야 합니다.')
   }
   if (!salary.date) {
     throw new Error('날짜가 필요합니다.')
@@ -60,9 +60,9 @@ export async function createSalary(salary: Omit<Salary, 'id'>): Promise<Salary> 
     .single()
 
   if (error) {
-    console.error('월급 생성 오류:', error)
+    console.error('수입 생성 오류:', error)
     const errorMessage = error.message || JSON.stringify(error)
-    throw new Error(`월급 생성 실패: ${errorMessage}`)
+    throw new Error(`수입 생성 실패: ${errorMessage}`)
   }
 
   return {
@@ -75,10 +75,10 @@ export async function createSalary(salary: Omit<Salary, 'id'>): Promise<Salary> 
 }
 
 /**
- * 월급 정보 수정
- * @param id - 월급 ID
+ * 수입 정보 수정
+ * @param id - 수입 ID
  * @param updates - 수정할 정보
- * @returns 수정된 월급 정보
+ * @returns 수정된 수입 정보
  */
 export async function updateSalary(id: string, updates: Partial<Omit<Salary, 'id'>>): Promise<Salary> {
   const updateData: Record<string, unknown> = {}
@@ -97,9 +97,9 @@ export async function updateSalary(id: string, updates: Partial<Omit<Salary, 'id
     .single()
 
   if (error) {
-    console.error('월급 수정 오류:', error)
+    console.error('수입 수정 오류:', error)
     const errorMessage = error.message || JSON.stringify(error)
-    throw new Error(`월급 수정 실패: ${errorMessage}`)
+    throw new Error(`수입 수정 실패: ${errorMessage}`)
   }
 
   return {
@@ -112,14 +112,14 @@ export async function updateSalary(id: string, updates: Partial<Omit<Salary, 'id
 }
 
 /**
- * 월급 정보 삭제
- * @param id - 월급 ID
+ * 수입 정보 삭제
+ * @param id - 수입 ID
  */
 export async function deleteSalary(id: string): Promise<void> {
   const { error } = await supabase.from('salaries').delete().eq('id', id)
 
   if (error) {
-    console.error('월급 삭제 오류:', error)
+    console.error('수입 삭제 오류:', error)
     throw error
   }
 }

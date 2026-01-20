@@ -9,9 +9,11 @@ import './LoginPage.css'
 
 const InvitePartnerPage = () => {
   const navigate = useNavigate()
-  const { supabaseUser, partner } = useAuthStore()
+  const { supabaseUser, partner, setupSoloUser } = useAuthStore()
   const [email, setEmail] = useState('')
+  const [name, setName] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [isSoloLoading, setIsSoloLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [invitations, setInvitations] = useState<any[]>([])
@@ -51,14 +53,20 @@ const InvitePartnerPage = () => {
       return
     }
 
+    if (!name) {
+      setError('이름을 입력해주세요.')
+      return
+    }
+
     try {
       setIsLoading(true)
       setError(null)
       setSuccess(null)
 
-      const invitation = await createInvitation(email)
+      const invitation = await createInvitation(email, name)
       setSuccess(`초대장이 ${email}로 발송되었습니다. 초대 코드: ${invitation.code}`)
       setEmail('')
+      setName('')
       await loadInvitations()
     } catch (error) {
       console.error('초대장 발송 오류:', error)
@@ -72,6 +80,28 @@ const InvitePartnerPage = () => {
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text)
     alert('초대 코드가 복사되었습니다!')
+  }
+
+  const handleSoloUse = async () => {
+    if (!name) {
+      setError('이름을 입력해주세요.')
+      return
+    }
+
+    try {
+      setIsSoloLoading(true)
+      setError(null)
+      setSuccess(null)
+
+      await setupSoloUser(name)
+      navigate('/', { replace: true })
+    } catch (error) {
+      console.error('혼자 사용하기 설정 오류:', error)
+      const errorMessage = error instanceof Error ? error.message : '설정 중 오류가 발생했습니다.'
+      setError(errorMessage)
+    } finally {
+      setIsSoloLoading(false)
+    }
   }
 
   return (
@@ -92,19 +122,48 @@ const InvitePartnerPage = () => {
             </div>
           )}
 
-          <Input
-            label="파트너 이메일"
-            type="email"
-            value={email}
-            onChange={(value) => setEmail(value)}
-            placeholder="파트너의 이메일 주소를 입력하세요"
-            required
-          />
+          <div style={{ marginBottom: '1.5rem' }}>
+            <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 'bold' }}>내 정보</h3>
+            <Input
+              label="이름"
+              value={name}
+              onChange={(value) => setName(value)}
+              placeholder="이름을 입력하세요"
+              required
+            />
+          </div>
+
+          <div style={{ marginBottom: '1.5rem' }}>
+            <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 'bold' }}>파트너 정보</h3>
+            <Input
+              label="파트너 이메일"
+              type="email"
+              value={email}
+              onChange={(value) => setEmail(value)}
+              placeholder="파트너의 이메일 주소를 입력하세요"
+              required
+            />
+          </div>
 
           <Button type="submit" fullWidth disabled={isLoading}>
             {isLoading ? '발송 중...' : '초대장 보내기'}
           </Button>
         </form>
+
+        <div style={{ marginTop: '2rem', paddingTop: '2rem', borderTop: '1px solid #e0e0e0' }}>
+          <Button 
+            type="button" 
+            fullWidth 
+            variant="secondary" 
+            onClick={handleSoloUse}
+            disabled={isSoloLoading || isLoading}
+          >
+            {isSoloLoading ? '처리 중...' : '혼자 사용하기'}
+          </Button>
+          <p style={{ marginTop: '0.75rem', fontSize: '0.85rem', color: '#666', textAlign: 'center' }}>
+            파트너 없이 혼자 가계부를 관리하고 싶으시면 이 버튼을 눌러주세요
+          </p>
+        </div>
 
         {invitations.length > 0 && (
           <Card style={{ marginTop: '2rem' }}>

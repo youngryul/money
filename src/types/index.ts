@@ -27,7 +27,7 @@ export interface Invitation {
 }
 
 /**
- * 월급 정보
+ * 수입 정보
  */
 export interface Salary {
   id: string

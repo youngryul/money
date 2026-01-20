@@ -31,7 +31,7 @@ const LedgerPage = () => {
     userId: '',
   })
 
-  const incomeCategories = ['월급', '부수입', '기타 수입']
+  const incomeCategories = ['수입', '부수입', '기타 수입']
   const expenseCategories = ['식비', '교통비', '생활용품', '의료비', '교육비', '문화생활', '고정비', '기타']
 
   const handleSubmit = (e: React.FormEvent) => {

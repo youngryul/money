@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { User } from '../types'
 import { STORAGE_KEYS, USER_TYPE, DEFAULT_VALUES } from '../constants'
-import { getUsers, createUser, updateUser } from '../services/userService'
+import { getUsers, createUser, updateUser, removePartner } from '../services/userService'
 import { supabase } from '../lib/supabase'
 import type { Session, User as SupabaseUser } from '@supabase/supabase-js'
 
@@ -22,10 +22,16 @@ interface AuthState {
   signOut: () => Promise<void>
   
   // 파트너 정보 설정
-  setupPartners: (user1: { name: string; character?: string }, user2: { name: string; character?: string }) => Promise<void>
+  setupPartners: (user1: { name: string }, user2: { name: string }) => Promise<void>
   
   // 파트너 정보 로드
   loadPartners: () => Promise<void>
+  
+  // 파트너 해지
+  removePartner: () => Promise<void>
+  
+  // 혼자 사용하기 (파트너 없이 사용자 정보만 설정)
+  setupSoloUser: (name: string) => Promise<void>
   
   // 세션 초기화
   initializeSession: () => Promise<void>
@@ -117,15 +123,13 @@ export const useAuthStore = create<AuthState>()(
             partner1 = await createUser({
               name: user1.name || DEFAULT_VALUES.PARTNER_1_NAME,
               type: USER_TYPE.PARTNER_1,
-              character: user1.character,
             })
           } else {
-            // 기존 사용자 정보 업데이트 (이름이나 캐릭터가 변경된 경우)
+            // 기존 사용자 정보 업데이트 (이름이 변경된 경우)
             const name = user1.name || DEFAULT_VALUES.PARTNER_1_NAME
-            if (partner1.name !== name || partner1.character !== user1.character) {
+            if (partner1.name !== name) {
               partner1 = await updateUser(partner1.id, {
                 name,
-                character: user1.character,
               })
             }
           }
@@ -136,15 +140,13 @@ export const useAuthStore = create<AuthState>()(
             partner2 = await createUser({
               name: user2.name || DEFAULT_VALUES.PARTNER_2_NAME,
               type: USER_TYPE.PARTNER_2,
-              character: user2.character,
             })
           } else {
-            // 기존 사용자 정보 업데이트 (이름이나 캐릭터가 변경된 경우)
+            // 기존 사용자 정보 업데이트 (이름이 변경된 경우)
             const name = user2.name || DEFAULT_VALUES.PARTNER_2_NAME
-            if (partner2.name !== name || partner2.character !== user2.character) {
+            if (partner2.name !== name) {
               partner2 = await updateUser(partner2.id, {
                 name,
-                character: user2.character,
               })
             }
           }
@@ -177,7 +179,6 @@ export const useAuthStore = create<AuthState>()(
               authUserId: supabaseUser.id,
               name: supabaseUser.email?.split('@')[0] || '사용자',
               type: null,
-              character: undefined,
             })
             
             set({
@@ -208,6 +209,69 @@ export const useAuthStore = create<AuthState>()(
           }
         } catch (error) {
           console.error('파트너 로드 오류:', error)
+        }
+      },
+
+      // 파트너 해지
+      removePartner: async () => {
+        try {
+          const { user } = get()
+          if (!user || !user.id) {
+            throw new Error('사용자 정보를 찾을 수 없습니다.')
+          }
+
+          await removePartner(user.id)
+          
+          // 로컬 상태 업데이트
+          set({
+            partner: null,
+          })
+          
+          // 사용자 정보도 업데이트 (partner_id 제거)
+          const updatedUser = await updateUser(user.id, { partnerId: null })
+          set({
+            user: updatedUser,
+          })
+        } catch (error) {
+          console.error('파트너 해지 오류:', error)
+          throw error
+        }
+      },
+
+      // 혼자 사용하기 (파트너 없이 사용자 정보만 설정)
+      setupSoloUser: async (name: string) => {
+        try {
+          const { supabaseUser } = get()
+          if (!supabaseUser) {
+            throw new Error('로그인이 필요합니다.')
+          }
+
+          const existingUsers = await getUsers()
+          // 현재 로그인한 사용자 찾기
+          let currentUser = existingUsers.find((u) => u.authUserId === supabaseUser.id)
+
+          if (!currentUser) {
+            // 사용자 정보가 없으면 생성
+            currentUser = await createUser({
+              authUserId: supabaseUser.id,
+              name,
+              type: null,
+            })
+          } else {
+            // 기존 사용자 정보 업데이트
+            currentUser = await updateUser(currentUser.id, {
+              name,
+              partnerId: null, // 파트너 관계 제거
+            })
+          }
+
+          set({
+            user: currentUser,
+            partner: null,
+          })
+        } catch (error) {
+          console.error('혼자 사용하기 설정 오류:', error)
+          throw error
         }
       },
 

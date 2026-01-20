@@ -49,7 +49,7 @@ interface DataState {
   isLoading: boolean
   error: string | null
 
-  // 월급
+  // 수입
   salaries: Salary[]
   addSalary: (salary: Omit<Salary, 'id'>) => Promise<void>
   updateSalary: (id: string, salary: Partial<Salary>) => Promise<void>
@@ -118,7 +118,7 @@ export const useDataStore = create<DataState>((set) => ({
         isLoading: false,
       }))
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : '월급 추가 중 오류가 발생했습니다.'
+      const errorMessage = error instanceof Error ? error.message : '수입 추가 중 오류가 발생했습니다.'
       set({ error: errorMessage, isLoading: false })
       throw error
     }
@@ -132,7 +132,7 @@ export const useDataStore = create<DataState>((set) => ({
         isLoading: false,
       }))
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : '월급 수정 중 오류가 발생했습니다.'
+      const errorMessage = error instanceof Error ? error.message : '수입 수정 중 오류가 발생했습니다.'
       set({ error: errorMessage, isLoading: false })
       throw error
     }
@@ -146,7 +146,7 @@ export const useDataStore = create<DataState>((set) => ({
         isLoading: false,
       }))
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : '월급 삭제 중 오류가 발생했습니다.'
+      const errorMessage = error instanceof Error ? error.message : '수입 삭제 중 오류가 발생했습니다.'
       set({ error: errorMessage, isLoading: false })
       throw error
     }

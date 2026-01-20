@@ -1,12 +1,18 @@
 import { supabase } from '../lib/supabase'
 import { Invitation } from '../types'
+import { createUser, getUsers, updateUser } from './userService'
+import { USER_TYPE } from '../constants'
 
 /**
  * 초대장 생성
  * @param inviteeEmail - 초대받을 사용자의 이메일
+ * @param inviterName - 초대하는 사용자의 이름
  * @returns 생성된 초대장 정보
  */
-export async function createInvitation(inviteeEmail: string): Promise<Invitation> {
+export async function createInvitation(
+  inviteeEmail: string,
+  inviterName: string
+): Promise<Invitation> {
   // 초대 코드 생성 (8자리 랜덤 문자열)
   const code = Math.random().toString(36).substring(2, 10).toUpperCase()
   
@@ -17,6 +23,25 @@ export async function createInvitation(inviteeEmail: string): Promise<Invitation
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
     throw new Error('로그인이 필요합니다.')
+  }
+
+  // 초대자 정보를 users 테이블에 저장 (PARTNER_1로 설정)
+  const existingUsers = await getUsers()
+  let inviterUser = existingUsers.find((u) => u.authUserId === user.id)
+  
+  if (!inviterUser) {
+    // 사용자 정보가 없으면 생성
+    inviterUser = await createUser({
+      authUserId: user.id,
+      name: inviterName,
+      type: USER_TYPE.PARTNER_1,
+    })
+  } else {
+    // 기존 사용자 정보 업데이트
+    inviterUser = await updateUser(inviterUser.id, {
+      name: inviterName,
+      type: USER_TYPE.PARTNER_1,
+    })
   }
 
   const { data, error } = await supabase
@@ -154,13 +179,11 @@ export async function getInvitationByCode(code: string): Promise<Invitation | nu
  * 초대장 수락
  * @param code - 초대장 코드
  * @param name - 사용자 이름
- * @param character - 사용자 캐릭터 (선택)
  * @returns 수락된 초대장 정보
  */
 export async function acceptInvitation(
   code: string,
-  name: string,
-  character?: string
+  name: string
 ): Promise<Invitation> {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
@@ -209,7 +232,6 @@ export async function acceptInvitation(
       {
         auth_user_id: user.id,
         name,
-        character: character && character.trim() !== '' ? character.trim() : null,
         type: inviterUser?.type === 'PARTNER_1' ? 'PARTNER_2' : 'PARTNER_1',
         partner_id: inviterUser?.id || null,
       },

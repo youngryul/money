@@ -8,8 +8,8 @@ import './LoginPage.css'
 const SetupPartnersPage = () => {
   const navigate = useNavigate()
   const { setupPartners, user, partner } = useAuthStore()
-  const [user1, setUser1] = useState({ name: '', character: '' })
-  const [user2, setUser2] = useState({ name: '', character: '' })
+  const [user1, setUser1] = useState({ name: '' })
+  const [user2, setUser2] = useState({ name: '' })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -61,12 +61,6 @@ const SetupPartnersPage = () => {
               placeholder="이름을 입력하세요"
               required
             />
-            <Input
-              label="캐릭터 (선택)"
-              value={user1.character}
-              onChange={(value) => setUser1({ ...user1, character: value })}
-              placeholder="예: 🐻, 👨, 등"
-            />
           </div>
           <div className="login-partner-section">
             <h3 className="login-partner-title">파트너 2</h3>
@@ -76,12 +70,6 @@ const SetupPartnersPage = () => {
               onChange={(value) => setUser2({ ...user2, name: value })}
               placeholder="이름을 입력하세요"
               required
-            />
-            <Input
-              label="캐릭터 (선택)"
-              value={user2.character}
-              onChange={(value) => setUser2({ ...user2, character: value })}
-              placeholder="예: 🐰, 👩, 등"
             />
           </div>
           <Button type="submit" fullWidth disabled={isLoading}>

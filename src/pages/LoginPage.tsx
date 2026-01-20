@@ -74,7 +74,7 @@ const LoginPage = () => {
   return (
     <div className="login-page">
       <div className="login-container">
-        <h1 className="login-title">부부 돈 관리</h1>
+        <h1 className="login-title">돈 관리</h1>
         <p className="login-subtitle">함께하는 가계부</p>
         <form onSubmit={handleSubmit} className="login-form">
           {error && (

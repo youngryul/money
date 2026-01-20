@@ -115,3 +115,33 @@ export async function deleteUser(id: string): Promise<void> {
     throw error
   }
 }
+
+/**
+ * 파트너 해지
+ * 양쪽 사용자의 partner_id를 NULL로 설정
+ * @param userId - 현재 사용자 ID
+ */
+export async function removePartner(userId: string): Promise<void> {
+  // 현재 사용자 정보 조회
+  const currentUser = await getUsers().then((users) => users.find((u) => u.id === userId))
+  
+  if (!currentUser) {
+    throw new Error('사용자를 찾을 수 없습니다.')
+  }
+
+  // 양쪽 사용자의 partner_id를 NULL로 설정
+  const updates: Promise<User>[] = []
+  
+  // 현재 사용자의 partner_id 제거
+  if (currentUser.partnerId) {
+    updates.push(updateUser(currentUser.id, { partnerId: null }))
+    
+    // 파트너의 partner_id도 제거
+    const partner = await getUsers().then((users) => users.find((u) => u.id === currentUser.partnerId))
+    if (partner) {
+      updates.push(updateUser(partner.id, { partnerId: null }))
+    }
+  }
+
+  await Promise.all(updates)
+}

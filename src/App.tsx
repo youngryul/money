@@ -50,8 +50,10 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/invite-partner" replace />
   }
 
+  // 파트너가 없어도 사용자가 있으면 접근 가능 (혼자 사용하기)
   if (!partner && hasCheckedInvitations) {
-    return <Navigate to="/invite-partner" replace />
+    // 초대장 확인이 완료되었고 파트너가 없으면 그대로 진행 (혼자 사용하기)
+    return <>{children}</>
   }
 
   if (!partner) {
@@ -101,9 +103,10 @@ function AppRoutes() {
   const { loadAllData } = useDataStore()
 
   // 데이터 로딩 (한 번만 실행되도록 useMemo로 감싸기)
+  // 파트너가 없어도 사용자가 있으면 데이터 로딩 (혼자 사용하기)
   const hasLoadedData = useMemo(() => {
-    return isAuthenticated && user && partner
-  }, [isAuthenticated, user?.id, partner?.id]) // id만 비교하여 불필요한 재렌더링 방지
+    return isAuthenticated && user
+  }, [isAuthenticated, user?.id]) // id만 비교하여 불필요한 재렌더링 방지
 
   useEffect(() => {
     if (hasLoadedData) {

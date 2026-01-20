@@ -12,7 +12,6 @@ const AcceptInvitationPage = () => {
   const { supabaseUser, partner, loadPartners } = useAuthStore()
   const [code, setCode] = useState(searchParams.get('code') || '')
   const [name, setName] = useState('')
-  const [character, setCharacter] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isChecking, setIsChecking] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -102,7 +101,7 @@ const AcceptInvitationPage = () => {
       setIsLoading(true)
       setError(null)
 
-      await acceptInvitation(code, name, character)
+      await acceptInvitation(code, name)
       await loadPartners()
       navigate('/', { replace: true })
     } catch (error) {
@@ -182,13 +181,6 @@ const AcceptInvitationPage = () => {
                     onChange={(value) => setName(value)}
                     placeholder="이름을 입력하세요"
                     required
-                  />
-
-                  <Input
-                    label="캐릭터 (선택)"
-                    value={character}
-                    onChange={(value) => setCharacter(value)}
-                    placeholder="예: 🐰, 👩, 등"
                   />
 
                   <Button type="submit" fullWidth disabled={isLoading || isChecking}>

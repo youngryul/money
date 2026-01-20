@@ -40,8 +40,8 @@ const SalaryPage = () => {
       })
       setIsModalOpen(false)
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : '월급 추가 중 오류가 발생했습니다.'
-      console.error('월급 추가 오류:', error)
+      const errorMessage = error instanceof Error ? error.message : '수입 추가 중 오류가 발생했습니다.'
+      console.error('수입 추가 오류:', error)
       alert(errorMessage)
     }
   }
@@ -51,7 +51,7 @@ const SalaryPage = () => {
       try {
         await deleteSalary(id)
       } catch (error) {
-        alert('월급 삭제 중 오류가 발생했습니다.')
+        alert('수입 삭제 중 오류가 발생했습니다.')
       }
     }
   }
@@ -65,9 +65,9 @@ const SalaryPage = () => {
   return (
     <div className="salary-page">
       <div className="page-header">
-        <h1 className="page-title">월급 기록</h1>
+        <h1 className="page-title">수입 기록</h1>
         <Button onClick={() => setIsModalOpen(true)} disabled={isLoading}>
-          월급 추가
+          수입 추가
         </Button>
       </div>
 
@@ -82,7 +82,7 @@ const SalaryPage = () => {
           {isLoading && salaries.length === 0 ? (
             <div className="empty-state">데이터를 불러오는 중...</div>
           ) : salaries.length === 0 ? (
-            <div className="empty-state">기록된 월급이 없습니다.</div>
+            <div className="empty-state">기록된 수입이 없습니다.</div>
           ) : (
             salaries
               .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
@@ -105,10 +105,10 @@ const SalaryPage = () => {
         </div>
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="월급 추가">
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="수입 추가">
         <form onSubmit={handleSubmit} className="salary-form">
           <div className="form-group">
-            <label className="form-label">누구의 월급인가요?</label>
+            <label className="form-label">누구의 수입인가요?</label>
             <select
               className="form-select"
               value={formData.userId}
@@ -125,7 +125,7 @@ const SalaryPage = () => {
             type="number"
             value={formData.amount}
             onChange={(value) => setFormData({ ...formData, amount: value })}
-            placeholder="월급액을 입력하세요"
+            placeholder="수입액을 입력하세요"
             required
             min={0}
             step={1000}

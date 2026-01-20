@@ -22,7 +22,7 @@ const DashboardPage = () => {
   const assets = useMemo(() => {
     const currentMonth = format(new Date(), 'yyyy-MM')
     
-    // 월급 합계 (이번 달)
+    // 수입 합계 (이번 달)
     const monthlySalary = salaries
       .filter((s) => s.date.startsWith(currentMonth))
       .reduce((sum, s) => sum + s.amount, 0)
@@ -151,18 +151,18 @@ const DashboardPage = () => {
       </div>
 
       <div className="dashboard-partners">
-        <Card title={`${user?.name || '파트너 1'} 정보`}>
+        <Card title={`${user?.name || '사용자'} 정보`}>
           <div className="dashboard-partner-info">
-            {user?.character && <span className="dashboard-partner-char">{user.character}</span>}
             <span>{user?.name}</span>
           </div>
         </Card>
-        <Card title={`${partner?.name || '파트너 2'} 정보`}>
-          <div className="dashboard-partner-info">
-            {partner?.character && <span className="dashboard-partner-char">{partner.character}</span>}
-            <span>{partner?.name}</span>
-          </div>
-        </Card>
+        {partner && (
+          <Card title={`${partner.name} 정보`}>
+            <div className="dashboard-partner-info">
+              <span>{partner.name}</span>
+            </div>
+          </Card>
+        )}
       </div>
     </div>
   )
