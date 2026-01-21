@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { format } from 'date-fns'
 import { useDataStore } from '../stores/dataStore'
+import { useAuthStore } from '../stores/authStore'
 import Card from '../components/Card'
 import Button from '../components/Button'
 import Input from '../components/Input'
@@ -8,6 +9,7 @@ import Modal from '../components/Modal'
 import './LivingExpensePage.css'
 
 const LivingExpensePage = () => {
+  const { user } = useAuthStore()
   const { livingExpenses, addLivingExpense, deleteLivingExpense } = useDataStore()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [formData, setFormData] = useState({
@@ -25,7 +27,12 @@ const LivingExpensePage = () => {
       alert('모든 필수 항목을 입력해주세요.')
       return
     }
+    if (!user?.id) {
+      alert('사용자 정보가 없습니다.')
+      return
+    }
     addLivingExpense({
+      userId: user.id,
       amount: Number(formData.amount),
       date: formData.date,
       category: formData.category,

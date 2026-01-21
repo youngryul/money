@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { format } from 'date-fns'
 import { useDataStore } from '../stores/dataStore'
+import { useAuthStore } from '../stores/authStore'
 import Card from '../components/Card'
 import Button from '../components/Button'
 import Input from '../components/Input'
@@ -10,6 +11,7 @@ import './SavingsPage.css'
 type SavingsType = 'EMERGENCY_FUND' | 'CONDOLENCE' | 'TRAVEL_SAVINGS' | 'HOUSE_SAVINGS'
 
 const SavingsPage = () => {
+  const { user } = useAuthStore()
   const { savings, addSavings, deleteSavings } = useDataStore()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [formData, setFormData] = useState({
@@ -25,7 +27,12 @@ const SavingsPage = () => {
       alert('금액을 입력해주세요.')
       return
     }
+    if (!user?.id) {
+      alert('사용자 정보가 없습니다.')
+      return
+    }
     addSavings({
+      userId: user.id,
       type: formData.type,
       amount: Number(formData.amount),
       date: formData.date,

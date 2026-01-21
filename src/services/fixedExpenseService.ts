@@ -3,15 +3,37 @@ import { FixedExpense } from '../types'
 
 /**
  * 고정비 정보 조회
- * @param userId - 사용자 ID (선택사항)
- * @returns 고정비 목록
+ * @returns 고정비 목록 (현재 사용자와 파트너의 데이터만)
  */
-export async function getFixedExpenses(userId?: string): Promise<FixedExpense[]> {
-  let query = supabase.from('fixed_expenses').select('*').order('day_of_month', { ascending: true })
-
-  if (userId) {
-    query = query.eq('user_id', userId)
+export async function getFixedExpenses(): Promise<FixedExpense[]> {
+  // 현재 사용자와 파트너의 user_id 가져오기
+  const { data: { user: authUser } } = await supabase.auth.getUser()
+  if (!authUser) {
+    return []
   }
+
+  // 현재 사용자 정보 조회
+  const { data: currentUserData } = await supabase
+    .from('users')
+    .select('id, partner_id')
+    .eq('auth_user_id', authUser.id)
+    .maybeSingle()
+
+  if (!currentUserData) {
+    return []
+  }
+
+  // 필터링할 user_id 목록 (현재 사용자 + 파트너)
+  const allowedUserIds: string[] = [currentUserData.id]
+  if (currentUserData.partner_id) {
+    allowedUserIds.push(currentUserData.partner_id)
+  }
+
+  let query = supabase
+    .from('fixed_expenses')
+    .select('*')
+    .in('user_id', allowedUserIds)
+    .order('day_of_month', { ascending: true })
 
   const { data, error } = await query
 

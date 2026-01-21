@@ -5,10 +5,37 @@ import { LivingExpense } from '../types'
  * 생활비 정보 조회
  * @param startDate - 시작 날짜 (선택사항)
  * @param endDate - 종료 날짜 (선택사항)
- * @returns 생활비 목록
+ * @returns 생활비 목록 (현재 사용자와 파트너의 데이터만)
  */
 export async function getLivingExpenses(startDate?: string, endDate?: string): Promise<LivingExpense[]> {
-  let query = supabase.from('living_expenses').select('*').order('date', { ascending: false })
+  // 현재 사용자와 파트너의 user_id 가져오기
+  const { data: { user: authUser } } = await supabase.auth.getUser()
+  if (!authUser) {
+    return []
+  }
+
+  // 현재 사용자 정보 조회
+  const { data: currentUserData } = await supabase
+    .from('users')
+    .select('id, partner_id')
+    .eq('auth_user_id', authUser.id)
+    .maybeSingle()
+
+  if (!currentUserData) {
+    return []
+  }
+
+  // 필터링할 user_id 목록 (현재 사용자 + 파트너)
+  const allowedUserIds: string[] = [currentUserData.id]
+  if (currentUserData.partner_id) {
+    allowedUserIds.push(currentUserData.partner_id)
+  }
+
+  let query = supabase
+    .from('living_expenses')
+    .select('*')
+    .in('user_id', allowedUserIds)
+    .order('date', { ascending: false })
 
   if (startDate) {
     query = query.gte('date', startDate)
@@ -27,6 +54,7 @@ export async function getLivingExpenses(startDate?: string, endDate?: string): P
   return (
     data?.map((expense) => ({
       id: expense.id,
+      userId: expense.user_id,
       amount: Number(expense.amount),
       date: expense.date,
       category: expense.category,
@@ -44,6 +72,7 @@ export async function createLivingExpense(expense: Omit<LivingExpense, 'id'>): P
   const { data, error } = await supabase
     .from('living_expenses')
     .insert({
+      user_id: expense.userId,
       amount: expense.amount,
       date: expense.date,
       category: expense.category,
@@ -59,6 +88,7 @@ export async function createLivingExpense(expense: Omit<LivingExpense, 'id'>): P
 
   return {
     id: data.id,
+    userId: data.user_id,
     amount: Number(data.amount),
     date: data.date,
     category: data.category,
@@ -77,6 +107,7 @@ export async function updateLivingExpense(
   updates: Partial<Omit<LivingExpense, 'id'>>
 ): Promise<LivingExpense> {
   const updateData: Record<string, unknown> = {}
+  if (updates.userId !== undefined) updateData.user_id = updates.userId
   if (updates.amount !== undefined) updateData.amount = updates.amount
   if (updates.date !== undefined) updateData.date = updates.date
   if (updates.category !== undefined) updateData.category = updates.category
@@ -96,6 +127,7 @@ export async function updateLivingExpense(
 
   return {
     id: data.id,
+    userId: data.user_id,
     amount: Number(data.amount),
     date: data.date,
     category: data.category,

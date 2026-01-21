@@ -4,12 +4,39 @@ import { Savings } from '../types'
 /**
  * 적금/비상금 정보 조회
  * @param type - 타입 필터 (선택사항)
- * @returns 적금/비상금 목록
+ * @returns 적금/비상금 목록 (현재 사용자와 파트너의 데이터만)
  */
 export async function getSavings(
   type?: 'EMERGENCY_FUND' | 'CONDOLENCE' | 'TRAVEL_SAVINGS' | 'HOUSE_SAVINGS'
 ): Promise<Savings[]> {
-  let query = supabase.from('savings').select('*').order('date', { ascending: false })
+  // 현재 사용자와 파트너의 user_id 가져오기
+  const { data: { user: authUser } } = await supabase.auth.getUser()
+  if (!authUser) {
+    return []
+  }
+
+  // 현재 사용자 정보 조회
+  const { data: currentUserData } = await supabase
+    .from('users')
+    .select('id, partner_id')
+    .eq('auth_user_id', authUser.id)
+    .maybeSingle()
+
+  if (!currentUserData) {
+    return []
+  }
+
+  // 필터링할 user_id 목록 (현재 사용자 + 파트너)
+  const allowedUserIds: string[] = [currentUserData.id]
+  if (currentUserData.partner_id) {
+    allowedUserIds.push(currentUserData.partner_id)
+  }
+
+  let query = supabase
+    .from('savings')
+    .select('*')
+    .in('user_id', allowedUserIds)
+    .order('date', { ascending: false })
 
   if (type) {
     query = query.eq('type', type)
@@ -25,6 +52,7 @@ export async function getSavings(
   return (
     data?.map((saving) => ({
       id: saving.id,
+      userId: saving.user_id,
       type: saving.type,
       amount: Number(saving.amount),
       date: saving.date,
@@ -42,6 +70,7 @@ export async function createSavings(saving: Omit<Savings, 'id'>): Promise<Saving
   const { data, error } = await supabase
     .from('savings')
     .insert({
+      user_id: saving.userId,
       type: saving.type,
       amount: saving.amount,
       date: saving.date,
@@ -57,6 +86,7 @@ export async function createSavings(saving: Omit<Savings, 'id'>): Promise<Saving
 
   return {
     id: data.id,
+    userId: data.user_id,
     type: data.type,
     amount: Number(data.amount),
     date: data.date,
@@ -72,6 +102,7 @@ export async function createSavings(saving: Omit<Savings, 'id'>): Promise<Saving
  */
 export async function updateSavings(id: string, updates: Partial<Omit<Savings, 'id'>>): Promise<Savings> {
   const updateData: Record<string, unknown> = {}
+  if (updates.userId !== undefined) updateData.user_id = updates.userId
   if (updates.type !== undefined) updateData.type = updates.type
   if (updates.amount !== undefined) updateData.amount = updates.amount
   if (updates.date !== undefined) updateData.date = updates.date
@@ -91,6 +122,7 @@ export async function updateSavings(id: string, updates: Partial<Omit<Savings, '
 
   return {
     id: data.id,
+    userId: data.user_id,
     type: data.type,
     amount: Number(data.amount),
     date: data.date,

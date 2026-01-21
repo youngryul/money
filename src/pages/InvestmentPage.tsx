@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { format } from 'date-fns'
 import { useDataStore } from '../stores/dataStore'
+import { useAuthStore } from '../stores/authStore'
 import Card from '../components/Card'
 import Button from '../components/Button'
 import Input from '../components/Input'
@@ -8,6 +9,7 @@ import Modal from '../components/Modal'
 import './InvestmentPage.css'
 
 const InvestmentPage = () => {
+  const { user } = useAuthStore()
   const { investments, addInvestment, updateInvestment, deleteInvestment } = useDataStore()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -29,7 +31,12 @@ const InvestmentPage = () => {
       alert('모든 필수 항목을 입력해주세요.')
       return
     }
+    if (!user?.id) {
+      alert('사용자 정보가 없습니다.')
+      return
+    }
     addInvestment({
+      userId: user.id,
       name: formData.name,
       type: formData.type,
       amount: Number(formData.amount),

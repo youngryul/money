@@ -54,6 +54,7 @@ export interface FixedExpense {
  */
 export interface LivingExpense {
   id: string
+  userId: string
   amount: number
   date: string
   category: string
@@ -89,6 +90,7 @@ export interface LedgerTransaction {
  */
 export interface Savings {
   id: string
+  userId: string
   type: 'EMERGENCY_FUND' | 'CONDOLENCE' | 'TRAVEL_SAVINGS' | 'HOUSE_SAVINGS'
   amount: number
   date: string
@@ -100,6 +102,7 @@ export interface Savings {
  */
 export interface Investment {
   id: string
+  userId: string
   name: string
   type: string // 주식, 채권, 부동산 등
   amount: number
@@ -113,6 +116,7 @@ export interface Investment {
  */
 export interface Goal {
   id: string
+  userId?: string // 공동 목표인 경우 null일 수 있음
   title: string
   targetAmount: number
   currentAmount: number
