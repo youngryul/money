@@ -6,7 +6,9 @@ import { Savings } from '../types'
  * @param type - 타입 필터 (선택사항)
  * @returns 적금/비상금 목록
  */
-export async function getSavings(type?: 'SAVINGS' | 'EMERGENCY_FUND'): Promise<Savings[]> {
+export async function getSavings(
+  type?: 'EMERGENCY_FUND' | 'CONDOLENCE' | 'TRAVEL_SAVINGS' | 'HOUSE_SAVINGS'
+): Promise<Savings[]> {
   let query = supabase.from('savings').select('*').order('date', { ascending: false })
 
   if (type) {

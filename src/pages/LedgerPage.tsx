@@ -31,8 +31,7 @@ const LedgerPage = () => {
     userId: '',
   })
 
-  const incomeCategories = ['수입', '부수입', '기타 수입']
-  const expenseCategories = ['식비', '교통비', '생활용품', '의료비', '교육비', '문화생활', '고정비', '기타']
+  const expenseCategories = ['식비', '교통비', '생활용품', '의료비', '교육비', '문화생활', '고정비', '카드값', '청약', '기타']
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -66,26 +65,27 @@ const LedgerPage = () => {
     return ''
   }
 
-  const transactions = ledgerTransactions.sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-  )
+  // 지출만 필터링하여 표시
+  const transactions = ledgerTransactions
+    .filter((t) => t.type === TRANSACTION_TYPE.EXPENSE)
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
   return (
     <div className="ledger-page">
       <div className="page-header">
-        <h1 className="page-title">가계부</h1>
-        <Button onClick={() => setIsModalOpen(true)}>거래 추가</Button>
+        <h1 className="page-title">지출</h1>
+        <Button onClick={() => setIsModalOpen(true)}>지출 추가</Button>
       </div>
 
       <Card>
         <div className="ledger-list">
           {transactions.length === 0 ? (
-            <div className="empty-state">기록된 거래가 없습니다.</div>
+            <div className="empty-state">기록된 지출이 없습니다.</div>
           ) : (
             transactions.map((transaction) => (
               <div
                 key={transaction.id}
-                className={`ledger-item ${transaction.type === TRANSACTION_TYPE.INCOME ? 'income' : 'expense'}`}
+                className="ledger-item expense"
               >
                 <div className="ledger-info">
                   <div className="ledger-header">
@@ -95,9 +95,8 @@ const LedgerPage = () => {
                       <span className="ledger-user">{getUserName(transaction.userId)}</span>
                     )}
                   </div>
-                  <div className={`ledger-amount ${transaction.type === TRANSACTION_TYPE.INCOME ? 'income' : 'expense'}`}>
-                    {transaction.type === TRANSACTION_TYPE.INCOME ? '+' : '-'}
-                    {transaction.amount.toLocaleString()}원
+                  <div className="ledger-amount expense">
+                    -{transaction.amount.toLocaleString()}원
                   </div>
                   {transaction.memo && <div className="ledger-memo">{transaction.memo}</div>}
                 </div>
@@ -118,26 +117,8 @@ const LedgerPage = () => {
         </div>
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="거래 추가">
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="지출 추가">
         <form onSubmit={handleSubmit} className="ledger-form">
-          <div className="form-group">
-            <label className="form-label">거래 유형</label>
-            <select
-              className="form-select"
-              value={formData.type}
-              onChange={(e) => {
-                setFormData({ 
-                  ...formData, 
-                  type: e.target.value as typeof TRANSACTION_TYPE[keyof typeof TRANSACTION_TYPE], 
-                  category: '' 
-                })
-              }}
-              required
-            >
-              <option value={TRANSACTION_TYPE.INCOME}>수입</option>
-              <option value={TRANSACTION_TYPE.EXPENSE}>지출</option>
-            </select>
-          </div>
           <Input
             label="금액"
             type="number"
@@ -146,7 +127,7 @@ const LedgerPage = () => {
             placeholder="금액을 입력하세요"
             required
             min={0}
-            step={1000}
+            step={1}
           />
           <Input
             label="날짜"
@@ -164,33 +145,25 @@ const LedgerPage = () => {
               required
             >
               <option value="">선택하세요</option>
-              {formData.type === TRANSACTION_TYPE.INCOME
-                ? incomeCategories.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))
-                : expenseCategories.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
+              {expenseCategories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
             </select>
           </div>
-          {formData.type === TRANSACTION_TYPE.EXPENSE && (
-            <div className="form-group">
-              <label className="form-label">누구의 지출인가요? (선택)</label>
-              <select
-                className="form-select"
-                value={formData.userId}
-                onChange={(e) => setFormData({ ...formData, userId: e.target.value })}
-              >
-                <option value="">공동 지출</option>
-                <option value={user?.id}>{user?.name}</option>
-                <option value={partner?.id}>{partner?.name}</option>
-              </select>
-            </div>
-          )}
+          <div className="form-group">
+            <label className="form-label">누구의 지출인가요? (선택)</label>
+            <select
+              className="form-select"
+              value={formData.userId}
+              onChange={(e) => setFormData({ ...formData, userId: e.target.value })}
+            >
+              <option value="">공동 지출</option>
+              <option value={user?.id}>{user?.name}</option>
+              <option value={partner?.id}>{partner?.name}</option>
+            </select>
+          </div>
           <Input
             label="메모"
             value={formData.memo}

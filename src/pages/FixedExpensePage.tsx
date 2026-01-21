@@ -136,7 +136,7 @@ const FixedExpensePage = () => {
             placeholder="금액을 입력하세요"
             required
             min={0}
-            step={1000}
+            step={1}
           />
           <Input
             label="매월 지출일"

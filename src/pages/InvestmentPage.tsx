@@ -222,7 +222,7 @@ const InvestmentPage = () => {
             placeholder="투자한 금액을 입력하세요"
             required
             min={0}
-            step={1000}
+            step={1}
           />
           <Input
             label="날짜"
@@ -238,7 +238,7 @@ const InvestmentPage = () => {
             onChange={(value) => setFormData({ ...formData, currentValue: value })}
             placeholder="현재 가치를 입력하세요"
             min={0}
-            step={1000}
+            step={1}
           />
           <Input
             label="메모"
@@ -288,7 +288,7 @@ const InvestmentPage = () => {
             placeholder="투자한 금액을 입력하세요"
             required
             min={0}
-            step={1000}
+            step={1}
           />
           <Input
             label="날짜"
@@ -304,7 +304,7 @@ const InvestmentPage = () => {
             onChange={(value) => setFormData({ ...formData, currentValue: value })}
             placeholder="현재 가치를 입력하세요"
             min={0}
-            step={1000}
+            step={1}
           />
           <Input
             label="메모"

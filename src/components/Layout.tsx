@@ -19,7 +19,7 @@ const Layout = () => {
     { path: '/fixed-expense', label: '고정비', icon: '📅' },
     { path: '/living-expense', label: '생활비', icon: '🛒' },
     { path: '/allowance', label: '용돈', icon: '💵' },
-    { path: '/ledger', label: '가계부', icon: '📖' },
+    { path: '/ledger', label: '지출', icon: '📖' },
     { path: '/savings', label: '적금/비상금', icon: '🏦' },
     { path: '/investment', label: '투자', icon: '📈' },
     { path: '/goal', label: '목표', icon: '🎯' },

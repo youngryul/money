@@ -89,7 +89,7 @@ export interface LedgerTransaction {
  */
 export interface Savings {
   id: string
-  type: 'SAVINGS' | 'EMERGENCY_FUND'
+  type: 'EMERGENCY_FUND' | 'CONDOLENCE' | 'TRAVEL_SAVINGS' | 'HOUSE_SAVINGS'
   amount: number
   date: string
   memo?: string

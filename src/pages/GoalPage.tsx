@@ -180,7 +180,7 @@ const GoalPage = () => {
             placeholder="목표 금액을 입력하세요"
             required
             min={0}
-            step={1000}
+            step={1}
           />
           <Input
             label="현재 금액"
@@ -189,7 +189,7 @@ const GoalPage = () => {
             onChange={(value) => setFormData({ ...formData, currentAmount: value })}
             placeholder="현재 모은 금액을 입력하세요"
             min={0}
-            step={1000}
+            step={1}
           />
           <Input
             label="목표일 (선택)"
@@ -229,7 +229,7 @@ const GoalPage = () => {
             placeholder="목표 금액을 입력하세요"
             required
             min={0}
-            step={1000}
+            step={1}
           />
           <Input
             label="현재 금액"
@@ -238,7 +238,7 @@ const GoalPage = () => {
             onChange={(value) => setFormData({ ...formData, currentAmount: value })}
             placeholder="현재 모은 금액을 입력하세요"
             min={0}
-            step={1000}
+            step={1}
           />
           <Input
             label="목표일 (선택)"

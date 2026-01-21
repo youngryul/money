@@ -102,7 +102,7 @@ CREATE TABLE IF NOT EXISTS ledger_transactions (
 -- 적금/비상금 정보 테이블
 CREATE TABLE IF NOT EXISTS savings (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  type VARCHAR(50) NOT NULL CHECK (type IN ('SAVINGS', 'EMERGENCY_FUND')),
+  type VARCHAR(50) NOT NULL CHECK (type IN ('EMERGENCY_FUND', 'CONDOLENCE', 'TRAVEL_SAVINGS', 'HOUSE_SAVINGS')),
   amount DECIMAL(15, 2) NOT NULL CHECK (amount >= 0),
   date DATE NOT NULL,
   memo TEXT,
