@@ -50,6 +50,26 @@
   margin-bottom: 0.25rem;
 }
 
+/* 생활비 카테고리 스타일 (파란색) */
+.living-expense-category {
+  background-color: #3b82f6 !important;
+  color: white !important;
+}
+
+.living-expense-amount {
+  color: #3b82f6 !important;
+}
+
+/* 생활비 이외 카테고리 스타일 (빨간색) */
+.other-expense-category {
+  background-color: var(--danger-color) !important;
+  color: white !important;
+}
+
+.other-expense-amount {
+  color: var(--danger-color) !important;
+}
+
 .expense-memo {
   font-size: 0.875rem;
   color: var(--text-secondary);
@@ -59,5 +79,49 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+}
+
+/* 생활비 잔액 요약 */
+.living-expense-summary {
+  margin-bottom: 1.5rem;
+}
+
+.summary-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem 0;
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.summary-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.summary-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.summary-total {
+  /* 잔액만 표시하므로 스타일 제거 */
+}
+
+.summary-total .summary-label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.summary-total .summary-value {
+  font-size: 2rem;
 }
 

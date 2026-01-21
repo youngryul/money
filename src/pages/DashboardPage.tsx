@@ -30,9 +30,9 @@ const DashboardPage = () => {
     // 고정비 합계 (이번 달 예상)
     const monthlyFixedExpense = fixedExpenses.reduce((sum, e) => sum + e.amount, 0)
 
-    // 생활비 합계 (이번 달)
+    // 생활비 합계 (이번 달) - '생활비' 카테고리만 계산
     const monthlyLivingExpense = livingExpenses
-      .filter((e) => e.date.startsWith(currentMonth))
+      .filter((e) => e.date.startsWith(currentMonth) && e.category === '생활비')
       .reduce((sum, e) => sum + e.amount, 0)
 
     // 용돈 합계 (이번 달)

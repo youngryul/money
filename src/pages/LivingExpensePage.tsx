@@ -19,7 +19,26 @@ const LivingExpensePage = () => {
     memo: '',
   })
 
-  const categories = ['식비', '교통비', '생활용품', '의료비', '교육비', '문화생활', '기타']
+  const categories = ['생활비', '식비', '교통비', '생활용품', '의료비', '교육비', '문화생활', '기타']
+
+  // 생활비 잔액 계산
+  const livingExpenseSummary = (() => {
+    const livingExpenseTotal = livingExpenses
+      .filter((e) => e.category === '생활비')
+      .reduce((sum, e) => sum + e.amount, 0)
+
+    const otherExpenseTotal = livingExpenses
+      .filter((e) => e.category !== '생활비')
+      .reduce((sum, e) => sum + e.amount, 0)
+
+    const remaining = livingExpenseTotal - otherExpenseTotal
+
+    return {
+      livingExpenseTotal,
+      otherExpenseTotal,
+      remaining,
+    }
+  })()
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -54,6 +73,20 @@ const LivingExpensePage = () => {
         <Button onClick={() => setIsModalOpen(true)}>생활비 추가</Button>
       </div>
 
+      {/* 생활비 잔액 요약 */}
+      <div className="living-expense-summary">
+        <Card>
+          <div className="summary-content">
+            <div className="summary-item summary-total">
+              <span className="summary-label">잔액</span>
+              <span className={`summary-value ${livingExpenseSummary.remaining >= 0 ? 'living-expense-amount' : 'other-expense-amount'}`}>
+                {livingExpenseSummary.remaining.toLocaleString()}원
+              </span>
+            </div>
+          </div>
+        </Card>
+      </div>
+
       <Card>
         <div className="expense-list">
           {livingExpenses.length === 0 ? (
@@ -65,10 +98,14 @@ const LivingExpensePage = () => {
                 <div key={expense.id} className="expense-item">
                   <div className="expense-info">
                     <div className="expense-header">
-                      <span className="expense-category">{expense.category}</span>
+                      <span className={`expense-category ${expense.category === '생활비' ? 'living-expense-category' : 'other-expense-category'}`}>
+                        {expense.category}
+                      </span>
                       <span className="expense-date">{format(new Date(expense.date), 'yyyy년 MM월 dd일')}</span>
                     </div>
-                    <div className="expense-amount">{expense.amount.toLocaleString()}원</div>
+                    <div className={`expense-amount ${expense.category === '생활비' ? 'living-expense-amount' : 'other-expense-amount'}`}>
+                      {expense.amount.toLocaleString()}원
+                    </div>
                     {expense.memo && <div className="expense-memo">{expense.memo}</div>}
                   </div>
                   <Button
