@@ -3,6 +3,7 @@ import { User } from '../types'
 
 /**
  * 사용자 정보 조회
+ * RLS 정책에 의해 자신의 정보와 파트너 정보만 반환됩니다.
  * @returns 사용자 목록
  */
 export async function getUsers(): Promise<User[]> {
@@ -26,6 +27,41 @@ export async function getUsers(): Promise<User[]> {
 }
 
 /**
+ * 현재 로그인한 사용자 정보 조회
+ * @returns 현재 사용자 정보 또는 null
+ */
+export async function getCurrentUser(): Promise<User | null> {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    return null
+  }
+
+  const { data, error } = await supabase
+    .from('users')
+    .select('*')
+    .eq('auth_user_id', user.id)
+    .maybeSingle()
+
+  if (error) {
+    console.error('사용자 조회 오류:', error)
+    throw error
+  }
+
+  if (!data) {
+    return null
+  }
+
+  return {
+    id: data.id,
+    authUserId: data.auth_user_id,
+    name: data.name,
+    type: data.type,
+    character: data.character,
+    partnerId: data.partner_id,
+  }
+}
+
+/**
  * 사용자 정보 생성
  * @param user - 생성할 사용자 정보
  * @returns 생성된 사용자 정보
@@ -45,15 +81,35 @@ export async function createUser(user: Omit<User, 'id'>): Promise<User> {
     insertData.partner_id = user.partnerId
   }
 
-  const { data, error } = await supabase
+  // INSERT만 먼저 실행
+  const { error: insertError } = await supabase
     .from('users')
     .insert(insertData)
-    .select()
+
+  if (insertError) {
+    console.error('사용자 생성 오류:', insertError)
+    throw insertError
+  }
+
+  // INSERT 후 별도로 SELECT (RLS 정책에 의해 자신의 정보만 조회됨)
+  const { data: { user: authUser } } = await supabase.auth.getUser()
+  if (!authUser) {
+    throw new Error('로그인이 필요합니다.')
+  }
+
+  const { data, error: selectError } = await supabase
+    .from('users')
+    .select('*')
+    .eq('auth_user_id', authUser.id)
     .single()
 
-  if (error) {
-    console.error('사용자 생성 오류:', error)
-    throw error
+  if (selectError) {
+    console.error('사용자 조회 오류:', selectError)
+    throw selectError
+  }
+
+  if (!data) {
+    throw new Error('사용자 정보를 찾을 수 없습니다.')
   }
 
   return {

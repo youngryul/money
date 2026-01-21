@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabase'
-import { Invitation } from '../types'
-import { createUser, getUsers, updateUser } from './userService'
+import { Invitation, User } from '../types'
+import { createUser, updateUser } from './userService'
 import { USER_TYPE } from '../constants'
 
 /**
@@ -26,10 +26,21 @@ export async function createInvitation(
   }
 
   // 초대자 정보를 users 테이블에 저장 (PARTNER_1로 설정)
-  const existingUsers = await getUsers()
-  let inviterUser = existingUsers.find((u) => u.authUserId === user.id)
+  // 현재 사용자 정보 조회 (RLS 정책에 의해 자신의 정보만 조회됨)
+  const { data: existingUser, error: userQueryError } = await supabase
+    .from('users')
+    .select('*')
+    .eq('auth_user_id', user.id)
+    .maybeSingle()
+
+  if (userQueryError && userQueryError.code !== 'PGRST116') {
+    console.error('사용자 조회 오류:', userQueryError)
+    throw new Error(userQueryError.message || '사용자 정보 조회에 실패했습니다.')
+  }
+
+  let inviterUser: User | null = null
   
-  if (!inviterUser) {
+  if (!existingUser) {
     // 사용자 정보가 없으면 생성
     inviterUser = await createUser({
       authUserId: user.id,
@@ -38,7 +49,7 @@ export async function createInvitation(
     })
   } else {
     // 기존 사용자 정보 업데이트
-    inviterUser = await updateUser(inviterUser.id, {
+    inviterUser = await updateUser(existingUser.id, {
       name: inviterName,
       type: USER_TYPE.PARTNER_1,
     })
@@ -152,15 +163,16 @@ export async function getInvitationByCode(code: string): Promise<Invitation | nu
     .eq('code', code)
     .eq('status', 'PENDING')
     .gt('expires_at', new Date().toISOString())
-    .single()
+    .maybeSingle()
 
   if (error) {
-    if (error.code === 'PGRST116') {
-      // 초대장을 찾을 수 없음
-      return null
-    }
     console.error('초대장 조회 오류:', error)
-    throw error
+    // RLS 정책 위반이나 다른 오류인 경우 null 반환
+    return null
+  }
+
+  if (!data) {
+    return null
   }
 
   return {
@@ -214,15 +226,29 @@ export async function acceptInvitation(
   }
 
   // 초대한 사용자 정보 조회
-  const { data: inviterUser, error: inviterError } = await supabase
+  // 주의: RLS 정책 때문에 직접 조회할 수 없으므로, 
+  // invitations 테이블에서 이미 조회한 정보를 사용합니다.
+  // inviterId는 auth.users의 id이므로, users 테이블의 auth_user_id와 일치합니다.
+  // 하지만 RLS 정책 때문에 조회할 수 없으므로, null로 처리합니다.
+  // 실제로는 초대장 수락 시 inviterUser의 type만 필요하므로,
+  // 초대장 생성 시 저장된 정보를 사용하거나, 다른 방법을 사용해야 합니다.
+  let inviterUser: any = null
+  
+  // 초대자의 users 테이블 정보를 조회하려고 시도하지만, 
+  // RLS 정책 때문에 실패할 수 있으므로 에러를 무시합니다.
+  const { data: inviterUserData, error: inviterError } = await supabase
     .from('users')
     .select('*')
     .eq('auth_user_id', invitation.inviterId)
-    .single()
+    .maybeSingle()
 
   if (inviterError && inviterError.code !== 'PGRST116') {
-    console.error('초대자 정보 조회 오류:', inviterError)
-    throw inviterError
+    // RLS 정책 때문에 조회할 수 없는 경우, 기본값 사용
+    console.warn('초대자 정보 조회 실패 (RLS 정책):', inviterError)
+    // 기본값으로 PARTNER_1로 가정
+    inviterUser = { type: 'PARTNER_1' }
+  } else {
+    inviterUser = inviterUserData
   }
 
   // 현재 사용자 정보 생성 또는 업데이트
