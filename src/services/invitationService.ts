@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase'
-import { Invitation, User } from '../types'
+import { Invitation } from '../types'
 import { createUser, updateUser } from './userService'
 import { USER_TYPE } from '../constants'
 
@@ -38,18 +38,17 @@ export async function createInvitation(
     throw new Error(userQueryError.message || '사용자 정보 조회에 실패했습니다.')
   }
 
-  let inviterUser: User | null = null
-  
+  // 초대자 정보를 users 테이블에 저장 (PARTNER_1로 설정)
   if (!existingUser) {
     // 사용자 정보가 없으면 생성
-    inviterUser = await createUser({
+    await createUser({
       authUserId: user.id,
       name: inviterName,
       type: USER_TYPE.PARTNER_1,
     })
   } else {
     // 기존 사용자 정보 업데이트
-    inviterUser = await updateUser(existingUser.id, {
+    await updateUser(existingUser.id, {
       name: inviterName,
       type: USER_TYPE.PARTNER_1,
     })
