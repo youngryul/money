@@ -9,7 +9,6 @@ import DashboardPage from './pages/DashboardPage'
 import SalaryPage from './pages/SalaryPage'
 import FixedExpensePage from './pages/FixedExpensePage'
 import LivingExpensePage from './pages/LivingExpensePage'
-import AllowancePage from './pages/AllowancePage'
 import LedgerPage from './pages/LedgerPage'
 import SavingsPage from './pages/SavingsPage'
 import InvestmentPage from './pages/InvestmentPage'
@@ -133,7 +132,6 @@ function AppRoutes() {
         <Route path="salary" element={<SalaryPage />} />
         <Route path="fixed-expense" element={<FixedExpensePage />} />
         <Route path="living-expense" element={<LivingExpensePage />} />
-        <Route path="allowance" element={<AllowancePage />} />
         <Route path="ledger" element={<LedgerPage />} />
         <Route path="savings" element={<SavingsPage />} />
         <Route path="investment" element={<InvestmentPage />} />
