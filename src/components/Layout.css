@@ -71,12 +71,15 @@
   top: 73px;
   height: calc(100vh - 73px);
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .layout-menu {
   list-style: none;
   padding: 0;
   margin: 0;
+  flex: 1;
 }
 
 .layout-menu-item {
@@ -107,6 +110,34 @@
 
 .layout-menu-icon {
   font-size: 1.25rem;
+}
+
+.layout-sidebar-footer {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 0 1.5rem;
+  width: 100%;
+}
+
+.layout-characters {
+  max-width: 100%;
+  width: 200px;
+  height: auto;
+  max-height: 250px;
+  object-fit: contain;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+  display: block;
+  margin: 0;
+}
+
+.layout-characters:hover {
+  opacity: 1;
 }
 
 .layout-main {

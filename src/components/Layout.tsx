@@ -125,6 +125,17 @@ const Layout = () => {
               </li>
             ))}
           </ul>
+          <div className="layout-sidebar-footer">
+            <img 
+              src="/characters.png" 
+              alt="한복 캐릭터" 
+              className="layout-characters"
+              onError={(e) => {
+                // 이미지가 없을 경우 숨김
+                e.currentTarget.style.display = 'none'
+              }}
+            />
+          </div>
         </nav>
         <main className="layout-main">
           <Outlet />

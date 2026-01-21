@@ -1,13 +1,11 @@
 import { useMemo } from 'react'
 import { format } from 'date-fns'
-import { useAuthStore } from '../stores/authStore'
 import { useDataStore } from '../stores/dataStore'
 import Card from '../components/Card'
 import AssetAnimation from '../components/AssetAnimation'
 import './DashboardPage.css'
 
 const DashboardPage = () => {
-  const { user, partner } = useAuthStore()
   const {
     salaries,
     fixedExpenses,
@@ -148,21 +146,6 @@ const DashboardPage = () => {
             </span>
           </div>
         </Card>
-      </div>
-
-      <div className="dashboard-partners">
-        <Card title={`${user?.name || '사용자'} 정보`}>
-          <div className="dashboard-partner-info">
-            <span>{user?.name}</span>
-          </div>
-        </Card>
-        {partner && (
-          <Card title={`${partner.name} 정보`}>
-            <div className="dashboard-partner-info">
-              <span>{partner.name}</span>
-            </div>
-          </Card>
-        )}
       </div>
     </div>
   )
