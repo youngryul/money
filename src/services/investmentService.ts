@@ -49,6 +49,7 @@ export async function getInvestments(): Promise<Investment[]> {
       amount: Number(investment.amount),
       date: investment.date,
       currentValue: investment.current_value ? Number(investment.current_value) : undefined,
+      monthlyDeposit: investment.monthly_deposit ? Number(investment.monthly_deposit) : undefined,
       memo: investment.memo,
     })) || []
   )
@@ -69,6 +70,7 @@ export async function createInvestment(investment: Omit<Investment, 'id'>): Prom
       amount: investment.amount,
       date: investment.date,
       current_value: investment.currentValue,
+      monthly_deposit: investment.monthlyDeposit,
       memo: investment.memo,
     })
     .select()
@@ -87,6 +89,7 @@ export async function createInvestment(investment: Omit<Investment, 'id'>): Prom
     amount: Number(data.amount),
     date: data.date,
     currentValue: data.current_value ? Number(data.current_value) : undefined,
+    monthlyDeposit: data.monthly_deposit ? Number(data.monthly_deposit) : undefined,
     memo: data.memo,
   }
 }
@@ -108,6 +111,7 @@ export async function updateInvestment(
   if (updates.amount !== undefined) updateData.amount = updates.amount
   if (updates.date !== undefined) updateData.date = updates.date
   if (updates.currentValue !== undefined) updateData.current_value = updates.currentValue
+  if (updates.monthlyDeposit !== undefined) updateData.monthly_deposit = updates.monthlyDeposit
   if (updates.memo !== undefined) updateData.memo = updates.memo
 
   const { data, error } = await supabase
@@ -130,6 +134,7 @@ export async function updateInvestment(
     amount: Number(data.amount),
     date: data.date,
     currentValue: data.current_value ? Number(data.current_value) : undefined,
+    monthlyDeposit: data.monthly_deposit ? Number(data.monthly_deposit) : undefined,
     memo: data.memo,
   }
 }

@@ -27,11 +27,11 @@
 }
 
 .summary-value.positive {
-  color: var(--success-color);
+  color: var(--danger-color); /* + 손익: 빨간색 */
 }
 
 .summary-value.negative {
-  color: var(--danger-color);
+  color: #3b82f6; /* - 손익: 파란색 */
 }
 
 .investment-list {
@@ -98,12 +98,18 @@
   color: var(--text-primary);
 }
 
-.investment-details .positive {
-  color: var(--success-color);
+.investment-details .positive,
+.investment-details .positive *,
+strong.positive,
+strong.positive * {
+  color: var(--danger-color) !important; /* + 손익: 빨간색 */
 }
 
-.investment-details .negative {
-  color: var(--danger-color);
+.investment-details .negative,
+.investment-details .negative *,
+strong.negative,
+strong.negative * {
+  color: #3b82f6 !important; /* - 손익: 파란색 */
 }
 
 .investment-memo {

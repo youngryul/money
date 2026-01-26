@@ -108,7 +108,12 @@ export interface Investment {
   amount: number
   date: string
   currentValue?: number
+  monthlyDeposit?: number // 이번 달 예수금
   memo?: string
+  // 한국투자증권 연동 필드
+  kisAccountNumber?: string // KIS 계좌번호
+  kisStockCode?: string // KIS 종목코드
+  isKisLinked?: boolean // KIS 연동 여부
 }
 
 /**
@@ -123,4 +128,3 @@ export interface Goal {
   deadline?: string
   memo?: string
 }
-

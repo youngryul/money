@@ -1,6 +1,8 @@
-import { useMemo } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { format } from 'date-fns'
 import { useDataStore } from '../stores/dataStore'
+import { getKisConnection } from '../services/kisConnectionService'
+import { getKisAccessToken, getKisHoldings, type KisHolding } from '../services/kisApiService'
 import Card from '../components/Card'
 import AssetAnimation from '../components/AssetAnimation'
 import './DashboardPage.css'
@@ -15,6 +17,37 @@ const DashboardPage = () => {
     investments,
     ledgerTransactions,
   } = useDataStore()
+
+  const [kisHoldings, setKisHoldings] = useState<KisHolding[]>([])
+
+  // 한국투자증권 보유 종목 로드
+  useEffect(() => {
+    const loadKisHoldings = async () => {
+      try {
+        const connection = await getKisConnection()
+        if (connection && connection.accountNumber) {
+          const tokenData = await getKisAccessToken(
+            connection.appKey,
+            connection.appSecret,
+            connection.isVirtual
+          )
+          const holdings = await getKisHoldings(
+            tokenData.access_token,
+            connection.appKey,
+            connection.appSecret,
+            connection.accountNumber,
+            connection.isVirtual
+          )
+          setKisHoldings(holdings)
+        }
+      } catch (error) {
+        console.error('KIS 보유 종목 로드 오류:', error)
+        // 오류가 발생해도 대시보드는 계속 표시
+      }
+    }
+
+    loadKisHoldings()
+  }, [])
 
   // 자산 계산
   const assets = useMemo(() => {
@@ -38,14 +71,26 @@ const DashboardPage = () => {
       .filter((a) => a.date.startsWith(currentMonth))
       .reduce((sum, a) => sum + a.amount, 0)
 
-    // 적금/비상금 합계
+    // 적금/비상금 합계 (전체)
     const totalSavings = savings.reduce((sum, s) => sum + s.amount, 0)
 
-    // 투자 합계
-    const totalInvestment = investments.reduce(
-      (sum, i) => sum + (i.currentValue || i.amount),
-      0
-    )
+    // 적금/비상금 합계 (이번 달) - 현금에서 차감
+    const monthlySavings = savings
+      .filter((s) => s.date.startsWith(currentMonth))
+      .reduce((sum, s) => sum + s.amount, 0)
+
+    // 한국투자증권 총 평가금액 계산
+    const kisTotalValue = kisHoldings.reduce((sum, h) => sum + h.totalValue, 0)
+    
+    // 투자 합계 (한국투자증권 연동이 있으면 총 평가금액 사용, 없으면 기존 로직)
+    const totalInvestment = kisTotalValue > 0 
+      ? kisTotalValue 
+      : investments.reduce((sum, i) => sum + (i.currentValue || i.amount), 0)
+
+    // 투자 예수금 합계 (이번 달) - 현금에서 차감
+    const monthlyInvestmentDeposit = investments
+      .filter((i) => i.date.startsWith(currentMonth))
+      .reduce((sum, i) => sum + (i.monthlyDeposit || 0), 0)
 
     // 가계부 수입 합계 (이번 달)
     const monthlyIncome = ledgerTransactions
@@ -58,7 +103,7 @@ const DashboardPage = () => {
       .reduce((sum, t) => sum + t.amount, 0)
 
     const totalIncome = monthlySalary + monthlyIncome
-    const totalExpense = monthlyFixedExpense + monthlyLivingExpense + monthlyAllowance + monthlyExpense
+    const totalExpense = monthlyFixedExpense + monthlyLivingExpense + monthlyAllowance + monthlyExpense + monthlySavings + monthlyInvestmentDeposit
     const cashBalance = totalIncome - totalExpense
     const totalAssets = cashBalance + totalSavings + totalInvestment
 
@@ -70,7 +115,7 @@ const DashboardPage = () => {
       investment: totalInvestment,
       totalAssets,
     }
-  }, [salaries, fixedExpenses, livingExpenses, allowances, savings, investments, ledgerTransactions])
+  }, [salaries, fixedExpenses, livingExpenses, allowances, savings, investments, ledgerTransactions, kisHoldings])
 
   // 이전 달 자산 (간단한 계산)
   const previousAssets = useMemo(() => {
