@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { format } from 'date-fns'
 import { useDataStore } from '../stores/dataStore'
+import { getKisConnection } from '../services/kisConnectionService'
+import { getKisAccessToken, getKisHoldings, type KisHolding } from '../services/kisApiService'
 import Card from '../components/Card'
 import Button from '../components/Button'
 import Input from '../components/Input'
@@ -8,10 +10,23 @@ import Modal from '../components/Modal'
 import './GoalPage.css'
 
 const GoalPage = () => {
-  const { goals, addGoal, updateGoal, deleteGoal } = useDataStore()
+  const {
+    goals,
+    addGoal,
+    updateGoal,
+    deleteGoal,
+    salaries,
+    fixedExpenses,
+    livingExpenses,
+    allowances,
+    savings,
+    investments,
+    ledgerTransactions,
+  } = useDataStore()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [kisHoldings, setKisHoldings] = useState<KisHolding[]>([])
   const [formData, setFormData] = useState({
     title: '',
     targetAmount: '',
@@ -19,6 +34,95 @@ const GoalPage = () => {
     deadline: '',
     memo: '',
   })
+
+  // 한국투자증권 보유 종목 로드
+  useEffect(() => {
+    const loadKisHoldings = async () => {
+      try {
+        const connection = await getKisConnection()
+        if (connection && connection.accountNumber) {
+          const tokenData = await getKisAccessToken(
+            connection.appKey,
+            connection.appSecret,
+            connection.isVirtual
+          )
+          const holdings = await getKisHoldings(
+            tokenData.access_token,
+            connection.appKey,
+            connection.appSecret,
+            connection.accountNumber,
+            connection.isVirtual
+          )
+          setKisHoldings(holdings)
+        }
+      } catch (error) {
+        console.error('KIS 보유 종목 로드 오류:', error)
+      }
+    }
+
+    loadKisHoldings()
+  }, [])
+
+  // 총 자산 계산
+  const totalAssets = useMemo(() => {
+    const currentMonth = format(new Date(), 'yyyy-MM')
+    
+    // 수입 합계 (이번 달)
+    const monthlySalary = salaries
+      .filter((s) => s.date.startsWith(currentMonth))
+      .reduce((sum, s) => sum + s.amount, 0)
+
+    // 고정비 합계 (이번 달 예상)
+    const monthlyFixedExpense = fixedExpenses.reduce((sum, e) => sum + e.amount, 0)
+
+    // 생활비 합계 (이번 달) - '생활비' 카테고리만 계산
+    const monthlyLivingExpense = livingExpenses
+      .filter((e) => e.date.startsWith(currentMonth) && e.category === '생활비')
+      .reduce((sum, e) => sum + e.amount, 0)
+
+    // 용돈 합계 (이번 달)
+    const monthlyAllowance = allowances
+      .filter((a) => a.date.startsWith(currentMonth))
+      .reduce((sum, a) => sum + a.amount, 0)
+
+    // 적금/비상금 합계 (전체)
+    const totalSavings = savings.reduce((sum, s) => sum + s.amount, 0)
+
+    // 적금/비상금 합계 (이번 달) - 현금에서 차감
+    const monthlySavings = savings
+      .filter((s) => s.date.startsWith(currentMonth))
+      .reduce((sum, s) => sum + s.amount, 0)
+
+    // 한국투자증권 총 평가금액 계산
+    const kisTotalValue = kisHoldings.reduce((sum, h) => sum + h.totalValue, 0)
+    
+    // 투자 합계 (한국투자증권 연동이 있으면 총 평가금액 사용, 없으면 기존 로직)
+    const totalInvestment = kisTotalValue > 0 
+      ? kisTotalValue 
+      : investments.reduce((sum, i) => sum + (i.currentValue || i.amount), 0)
+
+    // 투자 예수금 합계 (이번 달) - 현금에서 차감
+    const monthlyInvestmentDeposit = investments
+      .filter((i) => i.date.startsWith(currentMonth))
+      .reduce((sum, i) => sum + (i.monthlyDeposit || 0), 0)
+
+    // 가계부 수입 합계 (이번 달)
+    const monthlyIncome = ledgerTransactions
+      .filter((t) => t.type === 'INCOME' && t.date.startsWith(currentMonth))
+      .reduce((sum, t) => sum + t.amount, 0)
+
+    // 가계부 지출 합계 (이번 달)
+    const monthlyExpense = ledgerTransactions
+      .filter((t) => t.type === 'EXPENSE' && t.date.startsWith(currentMonth))
+      .reduce((sum, t) => sum + t.amount, 0)
+
+    const totalIncome = monthlySalary + monthlyIncome
+    // 현금 잔액 계산 (적금/비상금, 투자 예수금 포함)
+    const cashBalance = totalIncome - (monthlyFixedExpense + monthlyLivingExpense + monthlyAllowance + monthlyExpense + monthlySavings + monthlyInvestmentDeposit)
+    const totalAssets = cashBalance + totalSavings + totalInvestment
+
+    return totalAssets
+  }, [salaries, fixedExpenses, livingExpenses, allowances, savings, investments, ledgerTransactions, kisHoldings])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -29,7 +133,7 @@ const GoalPage = () => {
     addGoal({
       title: formData.title,
       targetAmount: Number(formData.targetAmount),
-      currentAmount: Number(formData.currentAmount) || 0,
+      currentAmount: totalAssets, // 총 자산을 현재 금액으로 설정
       deadline: formData.deadline || undefined,
       memo: formData.memo,
     })
@@ -48,7 +152,7 @@ const GoalPage = () => {
     setFormData({
       title: goal.title,
       targetAmount: goal.targetAmount.toString(),
-      currentAmount: goal.currentAmount.toString(),
+      currentAmount: totalAssets.toString(), // 총 자산으로 설정
       deadline: goal.deadline || '',
       memo: goal.memo || '',
     })
@@ -64,7 +168,7 @@ const GoalPage = () => {
     updateGoal(editingId, {
       title: formData.title,
       targetAmount: Number(formData.targetAmount),
-      currentAmount: Number(formData.currentAmount) || 0,
+      currentAmount: totalAssets, // 총 자산을 현재 금액으로 설정
       deadline: formData.deadline || undefined,
       memo: formData.memo,
     })
@@ -80,7 +184,9 @@ const GoalPage = () => {
   }
 
   const getProgress = (goal: typeof goals[0]) => {
-    return goal.targetAmount > 0 ? (goal.currentAmount / goal.targetAmount) * 100 : 0
+    // 현재 금액 대신 총 자산을 사용하여 진행률 계산
+    const currentAmount = totalAssets
+    return goal.targetAmount > 0 ? (currentAmount / goal.targetAmount) * 100 : 0
   }
 
   return (
@@ -98,7 +204,8 @@ const GoalPage = () => {
         ) : (
           goals.map((goal) => {
             const progress = getProgress(goal)
-            const remaining = goal.targetAmount - goal.currentAmount
+            const currentAmount = totalAssets // 총 자산을 현재 금액으로 사용
+            const remaining = goal.targetAmount - currentAmount
             return (
               <Card key={goal.id}>
                 <div className="goal-item">
@@ -129,7 +236,7 @@ const GoalPage = () => {
                       />
                     </div>
                     <div className="goal-progress-text">
-                      {progress.toFixed(1)}% ({goal.currentAmount.toLocaleString()}원 /{' '}
+                      {progress.toFixed(1)}% ({currentAmount.toLocaleString()}원 /{' '}
                       {goal.targetAmount.toLocaleString()}원)
                     </div>
                   </div>
@@ -139,8 +246,8 @@ const GoalPage = () => {
                       <span className="goal-detail-value">{goal.targetAmount.toLocaleString()}원</span>
                     </div>
                     <div className="goal-detail-item">
-                      <span className="goal-detail-label">현재 금액:</span>
-                      <span className="goal-detail-value">{goal.currentAmount.toLocaleString()}원</span>
+                      <span className="goal-detail-label">현재 금액 (총 자산):</span>
+                      <span className="goal-detail-value">{currentAmount.toLocaleString()}원</span>
                     </div>
                     <div className="goal-detail-item">
                       <span className="goal-detail-label">남은 금액:</span>
@@ -182,15 +289,19 @@ const GoalPage = () => {
             min={0}
             step={1}
           />
-          <Input
-            label="현재 금액"
-            type="number"
-            value={formData.currentAmount}
-            onChange={(value) => setFormData({ ...formData, currentAmount: value })}
-            placeholder="현재 모은 금액을 입력하세요"
-            min={0}
-            step={1}
-          />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <Input
+              label="현재 금액 (총 자산 자동 반영)"
+              type="number"
+              value={totalAssets.toString()}
+              onChange={() => {}} // 읽기 전용
+              placeholder="총 자산이 자동으로 반영됩니다"
+              disabled
+            />
+            <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+              * 현재 금액은 총 자산으로 자동 설정됩니다
+            </span>
+          </div>
           <Input
             label="목표일 (선택)"
             type="date"
@@ -231,15 +342,19 @@ const GoalPage = () => {
             min={0}
             step={1}
           />
-          <Input
-            label="현재 금액"
-            type="number"
-            value={formData.currentAmount}
-            onChange={(value) => setFormData({ ...formData, currentAmount: value })}
-            placeholder="현재 모은 금액을 입력하세요"
-            min={0}
-            step={1}
-          />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <Input
+              label="현재 금액 (총 자산 자동 반영)"
+              type="number"
+              value={totalAssets.toString()}
+              onChange={() => {}} // 읽기 전용
+              placeholder="총 자산이 자동으로 반영됩니다"
+              disabled
+            />
+            <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+              * 현재 금액은 총 자산으로 자동 설정됩니다
+            </span>
+          </div>
           <Input
             label="목표일 (선택)"
             type="date"
