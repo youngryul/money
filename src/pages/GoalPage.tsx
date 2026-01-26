@@ -105,7 +105,7 @@ const GoalPage = () => {
                   <div className="goal-header">
                     <h3 className="goal-title">{goal.title}</h3>
                     <div className="goal-actions">
-                      <Button variant="secondary" size="sm" onClick={() => handleEdit(goal)}>
+                      <Button variant="primary" size="sm" onClick={() => handleEdit(goal)}>
                         수정
                       </Button>
                       <Button

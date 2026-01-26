@@ -9,8 +9,10 @@ import './FixedExpensePage.css'
 
 const FixedExpensePage = () => {
   const { user, partner } = useAuthStore()
-  const { fixedExpenses, addFixedExpense, deleteFixedExpense, isLoading, error } = useDataStore()
+  const { fixedExpenses, addFixedExpense, updateFixedExpense, deleteFixedExpense, isLoading, error } = useDataStore()
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     userId: user?.id || '',
     name: '',
@@ -43,6 +45,46 @@ const FixedExpensePage = () => {
       setIsModalOpen(false)
     } catch (error) {
       alert('고정비 추가 중 오류가 발생했습니다.')
+    }
+  }
+
+  const handleEdit = (expense: typeof fixedExpenses[0]) => {
+    setEditingId(expense.id)
+    setFormData({
+      userId: expense.userId,
+      name: expense.name,
+      amount: expense.amount.toString(),
+      dayOfMonth: expense.dayOfMonth.toString(),
+      memo: expense.memo || '',
+    })
+    setIsEditModalOpen(true)
+  }
+
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingId || !formData.userId || !formData.name || !formData.amount || !formData.dayOfMonth) {
+      alert('모든 필수 항목을 입력해주세요.')
+      return
+    }
+    try {
+      await updateFixedExpense(editingId, {
+        userId: formData.userId,
+        name: formData.name,
+        amount: Number(formData.amount),
+        dayOfMonth: Number(formData.dayOfMonth),
+        memo: formData.memo,
+      })
+      setFormData({
+        userId: user?.id || '',
+        name: '',
+        amount: '',
+        dayOfMonth: '',
+        memo: '',
+      })
+      setEditingId(null)
+      setIsEditModalOpen(false)
+    } catch (error) {
+      alert('고정비 수정 중 오류가 발생했습니다.')
     }
   }
 
@@ -97,9 +139,14 @@ const FixedExpensePage = () => {
                   </div>
                   {expense.memo && <div className="expense-memo">{expense.memo}</div>}
                 </div>
-                <Button variant="danger" size="sm" onClick={() => handleDelete(expense.id)} disabled={isLoading}>
-                  삭제
-                </Button>
+                <div className="expense-actions">
+                  <Button variant="primary" size="sm" onClick={() => handleEdit(expense)} disabled={isLoading}>
+                    수정
+                  </Button>
+                  <Button variant="danger" size="sm" onClick={() => handleDelete(expense.id)} disabled={isLoading}>
+                    삭제
+                  </Button>
+                </div>
               </div>
             ))
           )}
@@ -160,6 +207,65 @@ const FixedExpensePage = () => {
             </Button>
             <Button type="submit" disabled={isLoading}>
               {isLoading ? '처리 중...' : '추가'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title="고정비 수정">
+        <form onSubmit={handleUpdate} className="expense-form">
+          <div className="form-group">
+            <label className="form-label">누구의 고정비인가요?</label>
+            <select
+              className="form-select"
+              value={formData.userId}
+              onChange={(e) => setFormData({ ...formData, userId: e.target.value })}
+              required
+            >
+              <option value="">선택하세요</option>
+              <option value={user?.id}>{user?.name}</option>
+              <option value={partner?.id}>{partner?.name}</option>
+            </select>
+          </div>
+          <Input
+            label="고정비 이름"
+            value={formData.name}
+            onChange={(value) => setFormData({ ...formData, name: value })}
+            placeholder="예: 통신비, 보험료 등"
+            required
+          />
+          <Input
+            label="금액"
+            type="number"
+            value={formData.amount}
+            onChange={(value) => setFormData({ ...formData, amount: value })}
+            placeholder="금액을 입력하세요"
+            required
+            min={0}
+            step={1}
+          />
+          <Input
+            label="매월 지출일"
+            type="number"
+            value={formData.dayOfMonth}
+            onChange={(value) => setFormData({ ...formData, dayOfMonth: value })}
+            placeholder="1-31 사이의 숫자"
+            required
+            min={1}
+            max="31"
+          />
+          <Input
+            label="메모"
+            value={formData.memo}
+            onChange={(value) => setFormData({ ...formData, memo: value })}
+            placeholder="메모를 입력하세요 (선택)"
+          />
+          <div className="form-actions">
+            <Button type="button" variant="secondary" onClick={() => setIsEditModalOpen(false)} disabled={isLoading}>
+              취소
+            </Button>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? '처리 중...' : '수정'}
             </Button>
           </div>
         </form>

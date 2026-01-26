@@ -59,6 +59,12 @@
   color: var(--text-secondary);
 }
 
+.salary-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
 .empty-state {
   text-align: center;
   padding: 3rem;

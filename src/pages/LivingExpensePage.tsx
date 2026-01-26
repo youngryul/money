@@ -10,8 +10,10 @@ import './LivingExpensePage.css'
 
 const LivingExpensePage = () => {
   const { user } = useAuthStore()
-  const { livingExpenses, addLivingExpense, deleteLivingExpense } = useDataStore()
+  const { livingExpenses, addLivingExpense, updateLivingExpense, deleteLivingExpense } = useDataStore()
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     amount: '',
     date: format(new Date(), 'yyyy-MM-dd'),
@@ -66,6 +68,44 @@ const LivingExpensePage = () => {
     setIsModalOpen(false)
   }
 
+  const handleEdit = (expense: typeof livingExpenses[0]) => {
+    setEditingId(expense.id)
+    setFormData({
+      amount: expense.amount.toString(),
+      date: expense.date,
+      category: expense.category,
+      memo: expense.memo || '',
+    })
+    setIsEditModalOpen(true)
+  }
+
+  const handleUpdate = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingId || !formData.amount || !formData.category) {
+      alert('모든 필수 항목을 입력해주세요.')
+      return
+    }
+    if (!user?.id) {
+      alert('사용자 정보가 없습니다.')
+      return
+    }
+    updateLivingExpense(editingId, {
+      userId: user.id,
+      amount: Number(formData.amount),
+      date: formData.date,
+      category: formData.category,
+      memo: formData.memo,
+    })
+    setFormData({
+      amount: '',
+      date: format(new Date(), 'yyyy-MM-dd'),
+      category: '',
+      memo: '',
+    })
+    setEditingId(null)
+    setIsEditModalOpen(false)
+  }
+
   return (
     <div className="living-expense-page">
       <div className="page-header">
@@ -108,17 +148,22 @@ const LivingExpensePage = () => {
                     </div>
                     {expense.memo && <div className="expense-memo">{expense.memo}</div>}
                   </div>
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    onClick={() => {
-                      if (confirm('삭제하시겠습니까?')) {
-                        deleteLivingExpense(expense.id)
-                      }
-                    }}
-                  >
-                    삭제
-                  </Button>
+                  <div className="expense-actions">
+                    <Button variant="primary" size="sm" onClick={() => handleEdit(expense)}>
+                      수정
+                    </Button>
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      onClick={() => {
+                        if (confirm('삭제하시겠습니까?')) {
+                          deleteLivingExpense(expense.id)
+                        }
+                      }}
+                    >
+                      삭제
+                    </Button>
+                  </div>
                 </div>
               ))
           )}
@@ -171,6 +216,56 @@ const LivingExpensePage = () => {
               취소
             </Button>
             <Button type="submit">추가</Button>
+          </div>
+        </form>
+      </Modal>
+
+      <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title="생활비 수정">
+        <form onSubmit={handleUpdate} className="expense-form">
+          <Input
+            label="금액"
+            type="number"
+            value={formData.amount}
+            onChange={(value) => setFormData({ ...formData, amount: value })}
+            placeholder="금액을 입력하세요"
+            required
+            min={0}
+            step={1}
+          />
+          <Input
+            label="날짜"
+            type="date"
+            value={formData.date}
+            onChange={(value) => setFormData({ ...formData, date: value })}
+            required
+          />
+          <div className="form-group">
+            <label className="form-label">카테고리</label>
+            <select
+              className="form-select"
+              value={formData.category}
+              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+              required
+            >
+              <option value="">선택하세요</option>
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
+          </div>
+          <Input
+            label="메모"
+            value={formData.memo}
+            onChange={(value) => setFormData({ ...formData, memo: value })}
+            placeholder="메모를 입력하세요 (선택)"
+          />
+          <div className="form-actions">
+            <Button type="button" variant="secondary" onClick={() => setIsEditModalOpen(false)}>
+              취소
+            </Button>
+            <Button type="submit">수정</Button>
           </div>
         </form>
       </Modal>

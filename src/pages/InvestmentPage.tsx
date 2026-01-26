@@ -174,7 +174,7 @@ const InvestmentPage = () => {
                       {investment.memo && <div className="investment-memo">{investment.memo}</div>}
                     </div>
                     <div className="investment-actions">
-                      <Button variant="secondary" size="sm" onClick={() => handleEdit(investment)}>
+                      <Button variant="primary" size="sm" onClick={() => handleEdit(investment)}>
                         수정
                       </Button>
                       <Button

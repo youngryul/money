@@ -11,8 +11,10 @@ import './LedgerPage.css'
 
 const LedgerPage = () => {
   const { user, partner } = useAuthStore()
-  const { ledgerTransactions, addLedgerTransaction, deleteLedgerTransaction } = useDataStore()
+  const { ledgerTransactions, addLedgerTransaction, updateLedgerTransaction, deleteLedgerTransaction } = useDataStore()
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
   type FormDataType = {
     type: typeof TRANSACTION_TYPE[keyof typeof TRANSACTION_TYPE]
     amount: string
@@ -58,6 +60,45 @@ const LedgerPage = () => {
     setIsModalOpen(false)
   }
 
+  const handleEdit = (transaction: typeof transactions[0]) => {
+    setEditingId(transaction.id)
+    setFormData({
+      type: transaction.type,
+      amount: transaction.amount.toString(),
+      date: transaction.date,
+      category: transaction.category,
+      memo: transaction.memo || '',
+      userId: transaction.userId || '',
+    })
+    setIsEditModalOpen(true)
+  }
+
+  const handleUpdate = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingId || !formData.amount || !formData.category) {
+      alert('모든 필수 항목을 입력해주세요.')
+      return
+    }
+    updateLedgerTransaction(editingId, {
+      type: formData.type,
+      amount: Number(formData.amount),
+      date: formData.date,
+      category: formData.category,
+      memo: formData.memo,
+      userId: formData.userId || undefined,
+    })
+    setFormData({
+      type: TRANSACTION_TYPE.EXPENSE,
+      amount: '',
+      date: format(new Date(), 'yyyy-MM-dd'),
+      category: '',
+      memo: '',
+      userId: '',
+    })
+    setEditingId(null)
+    setIsEditModalOpen(false)
+  }
+
   const getUserName = (userId?: string) => {
     if (!userId) return '공동'
     if (userId === user?.id) return user.name
@@ -100,17 +141,22 @@ const LedgerPage = () => {
                   </div>
                   {transaction.memo && <div className="ledger-memo">{transaction.memo}</div>}
                 </div>
-                <Button
-                  variant="danger"
-                  size="sm"
-                  onClick={() => {
-                    if (confirm('삭제하시겠습니까?')) {
-                      deleteLedgerTransaction(transaction.id)
-                    }
-                  }}
-                >
-                  삭제
-                </Button>
+                <div className="ledger-actions">
+                  <Button variant="primary" size="sm" onClick={() => handleEdit(transaction)}>
+                    수정
+                  </Button>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    onClick={() => {
+                      if (confirm('삭제하시겠습니까?')) {
+                        deleteLedgerTransaction(transaction.id)
+                      }
+                    }}
+                  >
+                    삭제
+                  </Button>
+                </div>
               </div>
             ))
           )}
@@ -175,6 +221,68 @@ const LedgerPage = () => {
               취소
             </Button>
             <Button type="submit">추가</Button>
+          </div>
+        </form>
+      </Modal>
+
+      <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title="지출 수정">
+        <form onSubmit={handleUpdate} className="ledger-form">
+          <Input
+            label="금액"
+            type="number"
+            value={formData.amount}
+            onChange={(value) => setFormData({ ...formData, amount: value })}
+            placeholder="금액을 입력하세요"
+            required
+            min={0}
+            step={1}
+          />
+          <Input
+            label="날짜"
+            type="date"
+            value={formData.date}
+            onChange={(value) => setFormData({ ...formData, date: value })}
+            required
+          />
+          <div className="form-group">
+            <label className="form-label">카테고리</label>
+            <select
+              className="form-select"
+              value={formData.category}
+              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+              required
+            >
+              <option value="">선택하세요</option>
+              {expenseCategories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="form-group">
+            <label className="form-label">누구의 지출인가요? (선택)</label>
+            <select
+              className="form-select"
+              value={formData.userId}
+              onChange={(e) => setFormData({ ...formData, userId: e.target.value })}
+            >
+              <option value="">공동 지출</option>
+              <option value={user?.id}>{user?.name}</option>
+              <option value={partner?.id}>{partner?.name}</option>
+            </select>
+          </div>
+          <Input
+            label="메모"
+            value={formData.memo}
+            onChange={(value) => setFormData({ ...formData, memo: value })}
+            placeholder="메모를 입력하세요 (선택)"
+          />
+          <div className="form-actions">
+            <Button type="button" variant="secondary" onClick={() => setIsEditModalOpen(false)}>
+              취소
+            </Button>
+            <Button type="submit">수정</Button>
           </div>
         </form>
       </Modal>

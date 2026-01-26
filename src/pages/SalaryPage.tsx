@@ -10,8 +10,10 @@ import './SalaryPage.css'
 
 const SalaryPage = () => {
   const { user, partner } = useAuthStore()
-  const { salaries, addSalary, deleteSalary, isLoading, error } = useDataStore()
+  const { salaries, addSalary, updateSalary, deleteSalary, isLoading, error } = useDataStore()
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     userId: user?.id || '',
     amount: '',
@@ -42,6 +44,45 @@ const SalaryPage = () => {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : '수입 추가 중 오류가 발생했습니다.'
       console.error('수입 추가 오류:', error)
+      alert(errorMessage)
+    }
+  }
+
+  const handleEdit = (salary: typeof salaries[0]) => {
+    setEditingId(salary.id)
+    setFormData({
+      userId: salary.userId,
+      amount: salary.amount.toString(),
+      date: salary.date,
+      memo: salary.memo || '',
+    })
+    setIsEditModalOpen(true)
+  }
+
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingId || !formData.userId || !formData.amount) {
+      alert('모든 필수 항목을 입력해주세요.')
+      return
+    }
+    try {
+      await updateSalary(editingId, {
+        userId: formData.userId,
+        amount: Number(formData.amount),
+        date: formData.date,
+        memo: formData.memo,
+      })
+      setFormData({
+        userId: user?.id || '',
+        amount: '',
+        date: format(new Date(), 'yyyy-MM-dd'),
+        memo: '',
+      })
+      setEditingId(null)
+      setIsEditModalOpen(false)
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : '수입 수정 중 오류가 발생했습니다.'
+      console.error('수입 수정 오류:', error)
       alert(errorMessage)
     }
   }
@@ -96,9 +137,14 @@ const SalaryPage = () => {
                     <div className="salary-amount">{salary.amount.toLocaleString()}원</div>
                     {salary.memo && <div className="salary-memo">{salary.memo}</div>}
                   </div>
-                  <Button variant="danger" size="sm" onClick={() => handleDelete(salary.id)} disabled={isLoading}>
-                    삭제
-                  </Button>
+                  <div className="salary-actions">
+                    <Button variant="primary" size="sm" onClick={() => handleEdit(salary)} disabled={isLoading}>
+                      수정
+                    </Button>
+                    <Button variant="danger" size="sm" onClick={() => handleDelete(salary.id)} disabled={isLoading}>
+                      삭제
+                    </Button>
+                  </div>
                 </div>
               ))
           )}
@@ -149,6 +195,55 @@ const SalaryPage = () => {
             </Button>
             <Button type="submit" disabled={isLoading}>
               {isLoading ? '처리 중...' : '추가'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title="수입 수정">
+        <form onSubmit={handleUpdate} className="salary-form">
+          <div className="form-group">
+            <label className="form-label">누구의 수입인가요?</label>
+            <select
+              className="form-select"
+              value={formData.userId}
+              onChange={(e) => setFormData({ ...formData, userId: e.target.value })}
+              required
+            >
+              <option value="">선택하세요</option>
+              <option value={user?.id}>{user?.name}</option>
+              <option value={partner?.id}>{partner?.name}</option>
+            </select>
+          </div>
+          <Input
+            label="금액"
+            type="number"
+            value={formData.amount}
+            onChange={(value) => setFormData({ ...formData, amount: value })}
+            placeholder="수입액을 입력하세요"
+            required
+            min={0}
+            step={1}
+          />
+          <Input
+            label="날짜"
+            type="date"
+            value={formData.date}
+            onChange={(value) => setFormData({ ...formData, date: value })}
+            required
+          />
+          <Input
+            label="메모"
+            value={formData.memo}
+            onChange={(value) => setFormData({ ...formData, memo: value })}
+            placeholder="메모를 입력하세요 (선택)"
+          />
+          <div className="form-actions">
+            <Button type="button" variant="secondary" onClick={() => setIsEditModalOpen(false)} disabled={isLoading}>
+              취소
+            </Button>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? '처리 중...' : '수정'}
             </Button>
           </div>
         </form>
