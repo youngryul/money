@@ -63,6 +63,11 @@
   border-color: var(--warning-color);
 }
 
+.calendar-day.has-living-expense {
+  border-color: #3b82f6;
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
 .calendar-day.empty {
   cursor: default;
   border: none;
@@ -86,6 +91,10 @@
   text-align: center;
   line-height: 1.2;
   word-break: break-all;
+}
+
+.calendar-day-expense.living-expense {
+  color: #3b82f6;
 }
 
 .calendar-day.selected .calendar-day-expense {

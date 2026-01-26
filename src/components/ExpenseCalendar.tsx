@@ -19,14 +19,19 @@ const ExpenseCalendar = ({ expenses, selectedDate, onDateClick }: ExpenseCalenda
   const monthEnd = endOfMonth(currentDate)
   const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd })
 
-  // 일별 지출 금액 계산
+  // 일별 지출 금액 계산 (생활비와 기타 지출 구분)
   const dailyExpenses = useMemo(() => {
-    const dailyMap = new Map<string, number>()
+    const dailyMap = new Map<string, { total: number; livingExpense: number }>()
     
     expenses.forEach((expense) => {
       const expenseDate = format(new Date(expense.date), 'yyyy-MM-dd')
-      const current = dailyMap.get(expenseDate) || 0
-      dailyMap.set(expenseDate, current + expense.amount)
+      const current = dailyMap.get(expenseDate) || { total: 0, livingExpense: 0 }
+      
+      const isLivingExpense = expense.category === '생활비'
+      dailyMap.set(expenseDate, {
+        total: current.total + expense.amount,
+        livingExpense: isLivingExpense ? current.livingExpense + expense.amount : current.livingExpense,
+      })
     })
     
     return dailyMap
@@ -60,19 +65,21 @@ const ExpenseCalendar = ({ expenses, selectedDate, onDateClick }: ExpenseCalenda
         {/* 날짜 칸 */}
         {daysInMonth.map((day) => {
           const dateKey = format(day, 'yyyy-MM-dd')
-          const dayExpense = dailyExpenses.get(dateKey) || 0
+          const dayExpenseData = dailyExpenses.get(dateKey) || { total: 0, livingExpense: 0 }
+          const dayExpense = dayExpenseData.total
+          const hasLivingExpense = dayExpenseData.livingExpense > 0
           const isToday = isSameDay(day, new Date())
           const isSelected = selectedDate && isSameDay(day, selectedDate)
           
           return (
             <div
               key={dateKey}
-              className={`calendar-day ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''} ${dayExpense > 0 ? 'has-expense' : ''}`}
+              className={`calendar-day ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''} ${dayExpense > 0 ? 'has-expense' : ''} ${hasLivingExpense ? 'has-living-expense' : ''}`}
               onClick={() => onDateClick?.(day)}
             >
               <div className="calendar-day-number">{format(day, 'd')}</div>
               {dayExpense > 0 && (
-                <div className="calendar-day-expense">
+                <div className={`calendar-day-expense ${hasLivingExpense ? 'living-expense' : ''}`}>
                   {dayExpense.toLocaleString()}원
                 </div>
               )}
