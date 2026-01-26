@@ -75,6 +75,7 @@ const InvestmentPage = () => {
     return () => clearInterval(interval)
   }, [kisConnected, kisConnectData.accountNumber])
 
+
   // KIS 보유 종목 로드 함수
   const loadKisHoldings = async (connection?: { appKey: string; appSecret: string; accountNumber: string; isVirtual: boolean }) => {
     const conn = connection || kisConnectData
@@ -95,6 +96,23 @@ const InvestmentPage = () => {
         conn.isVirtual
       )
       setKisHoldings(holdings)
+      
+      // 투자금 스냅샷 저장 (오후 4시에만)
+      const now = new Date()
+      const currentHour = now.getHours()
+      if (currentHour === 16) {
+        try {
+          const kisTotalValue = holdings.reduce((sum, h) => sum + h.totalValue, 0)
+          const totalInvestment = kisTotalValue > 0 
+            ? kisTotalValue 
+            : investments.reduce((sum, i) => sum + (i.currentValue || i.amount), 0)
+          
+          await saveInvestmentSnapshot(totalInvestment, kisTotalValue)
+          console.log('투자금 스냅샷 저장 완료:', totalInvestment)
+        } catch (error) {
+          console.error('투자금 스냅샷 저장 오류:', error)
+        }
+      }
     } catch (error) {
       console.error('KIS 보유 종목 로드 오류:', error)
       setKisError(error instanceof Error ? error.message : '보유 종목 조회 중 오류가 발생했습니다.')

@@ -6,6 +6,7 @@ import Card from '../components/Card'
 import Button from '../components/Button'
 import Input from '../components/Input'
 import Modal from '../components/Modal'
+import ExpenseCalendar from '../components/ExpenseCalendar'
 import './LivingExpensePage.css'
 
 const LivingExpensePage = () => {
@@ -126,6 +127,11 @@ const LivingExpensePage = () => {
           </div>
         </Card>
       </div>
+
+      {/* 생활비 달력 */}
+      <Card title="일별 지출 달력">
+        <ExpenseCalendar expenses={livingExpenses} />
+      </Card>
 
       <Card>
         <div className="expense-list">

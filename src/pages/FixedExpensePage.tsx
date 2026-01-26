@@ -104,6 +104,9 @@ const FixedExpensePage = () => {
     return ''
   }
 
+  // 총고정비 계산
+  const totalFixedExpense = fixedExpenses.reduce((sum, expense) => sum + expense.amount, 0)
+
   return (
     <div className="fixed-expense-page">
       <div className="page-header">
@@ -118,6 +121,13 @@ const FixedExpensePage = () => {
           {error}
         </div>
       )}
+
+      {/* 총고정비 표시 */}
+      <Card title="총고정비" style={{ marginBottom: '1.5rem' }}>
+        <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>
+          {totalFixedExpense.toLocaleString()}원
+        </div>
+      </Card>
 
       <Card>
         <div className="expense-list">
