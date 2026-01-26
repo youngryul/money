@@ -8,7 +8,7 @@ import Input from '../components/Input'
 import Modal from '../components/Modal'
 import './SavingsPage.css'
 
-type SavingsType = 'EMERGENCY_FUND' | 'CONDOLENCE' | 'TRAVEL_SAVINGS' | 'HOUSE_SAVINGS'
+type SavingsType = 'EMERGENCY_FUND' | 'CONDOLENCE' | 'TRAVEL_SAVINGS' | 'HOUSE_SAVINGS' | 'WEEK26_SAVINGS'
 
 const SavingsPage = () => {
   const { user } = useAuthStore()
@@ -92,13 +92,15 @@ const SavingsPage = () => {
   const condolenceList = savings.filter((s) => s.type === 'CONDOLENCE')
   const travelSavingsList = savings.filter((s) => s.type === 'TRAVEL_SAVINGS')
   const houseSavingsList = savings.filter((s) => s.type === 'HOUSE_SAVINGS')
+  const week26SavingsList = savings.filter((s) => s.type === 'WEEK26_SAVINGS')
 
   // 유형별 합계
   const totalEmergencyFund = emergencyFundList.reduce((sum, s) => sum + s.amount, 0)
   const totalCondolence = condolenceList.reduce((sum, s) => sum + s.amount, 0)
   const totalTravelSavings = travelSavingsList.reduce((sum, s) => sum + s.amount, 0)
   const totalHouseSavings = houseSavingsList.reduce((sum, s) => sum + s.amount, 0)
-  const totalSavings = totalEmergencyFund + totalCondolence + totalTravelSavings + totalHouseSavings
+  const totalWeek26Savings = week26SavingsList.reduce((sum, s) => sum + s.amount, 0)
+  const totalSavings = totalEmergencyFund + totalCondolence + totalTravelSavings + totalHouseSavings + totalWeek26Savings
 
   const renderSavingsList = (list: typeof savings, typeLabel: string) => {
     if (list.length === 0) {
@@ -171,6 +173,12 @@ const SavingsPage = () => {
         </Card>
         <Card>
           <div className="summary-item">
+            <span className="summary-label">총 26주적금</span>
+            <span className="summary-value">{totalWeek26Savings.toLocaleString()}원</span>
+          </div>
+        </Card>
+        <Card>
+          <div className="summary-item">
             <span className="summary-label">전체 합계</span>
             <span className="summary-value">{totalSavings.toLocaleString()}원</span>
           </div>
@@ -193,21 +201,66 @@ const SavingsPage = () => {
         <div className="savings-list">{renderSavingsList(houseSavingsList, '집마련적금')}</div>
       </Card>
 
+      <Card title="26주적금 내역">
+        <div className="savings-list">{renderSavingsList(week26SavingsList, '26주적금')}</div>
+      </Card>
+
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="적금/비상금 추가">
         <form onSubmit={handleSubmit} className="savings-form">
           <div className="form-group">
             <label className="form-label">유형</label>
-            <select
-              className="form-select"
-              value={formData.type}
-              onChange={(e) => setFormData({ ...formData, type: e.target.value as SavingsType })}
-              required
-            >
-              <option value="EMERGENCY_FUND">비상금</option>
-              <option value="CONDOLENCE">경조사비</option>
-              <option value="TRAVEL_SAVINGS">여행적금</option>
-              <option value="HOUSE_SAVINGS">집마련적금</option>
-            </select>
+            <div className="radio-group">
+              <label className="radio-label">
+                <input
+                  type="radio"
+                  name="savingsType"
+                  value="EMERGENCY_FUND"
+                  checked={formData.type === 'EMERGENCY_FUND'}
+                  onChange={(e) => setFormData({ ...formData, type: e.target.value as SavingsType })}
+                />
+                <span>비상금</span>
+              </label>
+              <label className="radio-label">
+                <input
+                  type="radio"
+                  name="savingsType"
+                  value="CONDOLENCE"
+                  checked={formData.type === 'CONDOLENCE'}
+                  onChange={(e) => setFormData({ ...formData, type: e.target.value as SavingsType })}
+                />
+                <span>경조사비</span>
+              </label>
+              <label className="radio-label">
+                <input
+                  type="radio"
+                  name="savingsType"
+                  value="TRAVEL_SAVINGS"
+                  checked={formData.type === 'TRAVEL_SAVINGS'}
+                  onChange={(e) => setFormData({ ...formData, type: e.target.value as SavingsType })}
+                />
+                <span>여행적금</span>
+              </label>
+              <label className="radio-label">
+                <input
+                  type="radio"
+                  name="savingsType"
+                  value="HOUSE_SAVINGS"
+                  checked={formData.type === 'HOUSE_SAVINGS'}
+                  onChange={(e) => setFormData({ ...formData, type: e.target.value as SavingsType })}
+                />
+                <span>집마련적금</span>
+              </label>
+              <label className="radio-label">
+                <input
+                  type="radio"
+                  name="savingsType"
+                  value="WEEK26_SAVINGS"
+                  checked={formData.type === 'WEEK26_SAVINGS'}
+                  onChange={(e) => setFormData({ ...formData, type: e.target.value as SavingsType })}
+                />
+                <span>26주적금</span>
+              </label>
+            </div>
           </div>
           <Input
             label="금액"
@@ -245,17 +298,58 @@ const SavingsPage = () => {
         <form onSubmit={handleUpdate} className="savings-form">
           <div className="form-group">
             <label className="form-label">유형</label>
-            <select
-              className="form-select"
-              value={formData.type}
-              onChange={(e) => setFormData({ ...formData, type: e.target.value as SavingsType })}
-              required
-            >
-              <option value="EMERGENCY_FUND">비상금</option>
-              <option value="CONDOLENCE">경조사비</option>
-              <option value="TRAVEL_SAVINGS">여행적금</option>
-              <option value="HOUSE_SAVINGS">집마련적금</option>
-            </select>
+            <div className="radio-group">
+              <label className="radio-label">
+                <input
+                  type="radio"
+                  name="savingsTypeEdit"
+                  value="EMERGENCY_FUND"
+                  checked={formData.type === 'EMERGENCY_FUND'}
+                  onChange={(e) => setFormData({ ...formData, type: e.target.value as SavingsType })}
+                />
+                <span>비상금</span>
+              </label>
+              <label className="radio-label">
+                <input
+                  type="radio"
+                  name="savingsTypeEdit"
+                  value="CONDOLENCE"
+                  checked={formData.type === 'CONDOLENCE'}
+                  onChange={(e) => setFormData({ ...formData, type: e.target.value as SavingsType })}
+                />
+                <span>경조사비</span>
+              </label>
+              <label className="radio-label">
+                <input
+                  type="radio"
+                  name="savingsTypeEdit"
+                  value="TRAVEL_SAVINGS"
+                  checked={formData.type === 'TRAVEL_SAVINGS'}
+                  onChange={(e) => setFormData({ ...formData, type: e.target.value as SavingsType })}
+                />
+                <span>여행적금</span>
+              </label>
+              <label className="radio-label">
+                <input
+                  type="radio"
+                  name="savingsTypeEdit"
+                  value="HOUSE_SAVINGS"
+                  checked={formData.type === 'HOUSE_SAVINGS'}
+                  onChange={(e) => setFormData({ ...formData, type: e.target.value as SavingsType })}
+                />
+                <span>집마련적금</span>
+              </label>
+              <label className="radio-label">
+                <input
+                  type="radio"
+                  name="savingsTypeEdit"
+                  value="WEEK26_SAVINGS"
+                  checked={formData.type === 'WEEK26_SAVINGS'}
+                  onChange={(e) => setFormData({ ...formData, type: e.target.value as SavingsType })}
+                />
+                <span>26주적금</span>
+              </label>
+            </div>
           </div>
           <Input
             label="금액"

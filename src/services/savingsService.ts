@@ -7,7 +7,7 @@ import { Savings } from '../types'
  * @returns 적금/비상금 목록 (현재 사용자와 파트너의 데이터만)
  */
 export async function getSavings(
-  type?: 'EMERGENCY_FUND' | 'CONDOLENCE' | 'TRAVEL_SAVINGS' | 'HOUSE_SAVINGS'
+  type?: 'EMERGENCY_FUND' | 'CONDOLENCE' | 'TRAVEL_SAVINGS' | 'HOUSE_SAVINGS' | 'WEEK26_SAVINGS'
 ): Promise<Savings[]> {
   // 현재 사용자와 파트너의 user_id 가져오기
   const { data: { user: authUser } } = await supabase.auth.getUser()
