@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from 'react'
-import { format, subMonths, startOfMonth, endOfMonth } from 'date-fns'
+import { format, startOfMonth, endOfMonth } from 'date-fns'
 import { useDataStore } from '../stores/dataStore'
 import { getKisConnection } from '../services/kisConnectionService'
 import { getKisAccessToken, getKisHoldings, type KisHolding } from '../services/kisApiService'
@@ -187,7 +187,6 @@ const DashboardPage = () => {
     if (allDates.length === 0) {
       // 데이터가 없으면 현재 달만 표시
       const currentDate = new Date()
-      const monthKey = format(currentDate, 'yyyy-MM')
       const monthLabel = format(currentDate, 'MM월')
       
       return [{

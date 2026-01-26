@@ -17,7 +17,7 @@ const STORAGE_KEY_PREFIX = 'kis_token_cache_'
 /**
  * 캐시 키 생성
  */
-function getCacheKey(appKey: string, appSecret: string, isVirtual: boolean): string {
+function getCacheKey(appKey: string, _appSecret: string, isVirtual: boolean): string {
   // appKey와 isVirtual만으로 키 생성 (appSecret은 보안상 키에 포함하지 않음)
   return `${STORAGE_KEY_PREFIX}${appKey}_${isVirtual}`
 }

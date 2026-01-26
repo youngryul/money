@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react'
 import { format } from 'date-fns'
 import { useDataStore } from '../stores/dataStore'
 import { useAuthStore } from '../stores/authStore'
-import { getKisAccessToken, getKisAccounts, getKisHoldings, type KisHolding } from '../services/kisApiService'
+import { getKisAccessToken, getKisHoldings, type KisHolding } from '../services/kisApiService'
 import { getKisConnection, saveKisConnection, deleteKisConnection } from '../services/kisConnectionService'
+import { saveInvestmentSnapshot } from '../services/investmentSnapshotService'
 import Card from '../components/Card'
 import Button from '../components/Button'
 import Input from '../components/Input'
@@ -12,7 +13,7 @@ import './InvestmentPage.css'
 
 const InvestmentPage = () => {
   const { user } = useAuthStore()
-  const { investments, addInvestment, updateInvestment, deleteInvestment } = useDataStore()
+  const { investments, addInvestment, updateInvestment } = useDataStore()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false)
@@ -165,18 +166,6 @@ const InvestmentPage = () => {
     setIsModalOpen(false)
   }
 
-  const handleEdit = (investment: typeof investments[0]) => {
-    setEditingId(investment.id)
-    setFormData({
-      name: investment.name,
-      type: investment.type,
-      amount: investment.amount.toString(),
-      date: investment.date,
-      currentValue: investment.currentValue?.toString() || '',
-      memo: investment.memo || '',
-    })
-    setIsEditModalOpen(true)
-  }
 
   const handleUpdate = (e: React.FormEvent) => {
     e.preventDefault()
