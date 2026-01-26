@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
+import { useDataStore } from '../stores/dataStore'
 import Modal from './Modal'
 import Button from './Button'
 import './Layout.css'
@@ -9,6 +10,7 @@ const Layout = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const { user, partner, signOut, removePartner } = useAuthStore()
+  const { loadAllData } = useDataStore()
   const [showConfirmModal, setShowConfirmModal] = useState(false)
   const [showMessageModal, setShowMessageModal] = useState(false)
   const [messageModalContent, setMessageModalContent] = useState<{ title: string; message: string; type: 'success' | 'error' } | null>(null)
@@ -23,6 +25,15 @@ const Layout = () => {
     { path: '/investment', label: '투자', icon: '📈' },
     { path: '/goal', label: '목표', icon: '🎯' },
   ]
+
+  // 메뉴 이동 시마다 데이터 재조회
+  useEffect(() => {
+    if (user) {
+      loadAllData().catch((error) => {
+        console.error('데이터 로딩 실패:', error)
+      })
+    }
+  }, [location.pathname, user, loadAllData])
 
   const handleLogout = async () => {
     if (confirm('로그아웃 하시겠습니까?')) {
